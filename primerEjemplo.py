@@ -5,7 +5,7 @@ import os
 
 # Crea una imagen de 500x500 píxeles, todos con valor 240 (gris claro). 
 # La imagen tiene solo un canal (escala de grises) y está inicializada con valores de tipo uint8 (enteros sin signo de 8 bits).
-p = 80
+p = 12
 size = (p*8)*10
 margin = p*3
 
@@ -17,6 +17,8 @@ midy = y // 2
 
 a = Image.new("RGB", (x,y), color="white")
 a.save("base.png")
+b = Image.new("RGB", (x,y), color="white")
+b.save("negativo.png")
 
 # El numero que multiplica a la matriz * x es el color que en este caso es en escala de gris
 
@@ -434,8 +436,20 @@ for l in range(p): # y = 49
 
 
 cv.imwrite('base.png',img)
+cv.imshow('img',img)
+
+
+x,y = img.shape
+
+for i in range(x): 
+        for j in range(y):
+                if(img[i,j]>150): # Operador puntual: Trabajan por punto
+                        img[i,j]=255
+                else:
+                        img[i,j]=0
+cv.imshow('img',img)
+cv.imwrite('negativo.png', img)
             
 
-cv.imshow('img',img)
 cv.waitKey()
 cv.destroyAllWindows()
