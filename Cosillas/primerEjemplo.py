@@ -447,7 +447,7 @@ for i in range(x):
                         img[i,j]=255
                 else:
                         img[i,j]=0
-cv.imshow('img',img)
+cv.imshow('img2',img)
 cv.imwrite('negativo.png', img)
             
 
