@@ -19,7 +19,7 @@ while cap.isOpened():
     # Convertir el cuadro a espacio de color HSV, sino se puede hacer el manejo de pixeles
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
     # Definir el rango de color de la tela (verde, en este caso) en HSV
-    lower_green = np.array([40, 40, 40])
+    lower_green = np.array([40,20,20])
     upper_green = np.array([90, 255, 255])
     
     # Los dos primeros numeros del arreglo son el color
