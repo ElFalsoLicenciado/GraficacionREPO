@@ -10,8 +10,8 @@ s_y = 300 # Alto
 img = np.ones((s_y,s_x,3), dtype=np.uint8)*255
 
 # Variables para el sentido de la pelota
-d_x = 1
-d_y = 1
+d_x = 6
+d_y = 6
 
 # Variables para el centro de la pelota
 i = 49
@@ -21,9 +21,12 @@ j = 21
 I = s_x//2
 J = s_y//2
 
+time  = 0
 
 
 while(True):
+    
+    time += 1
     # Sirve para que la imagen se vuelva a hacer    
     img = np.ones((s_y,s_x,3), dtype=np.uint8)*255
     
@@ -41,16 +44,21 @@ while(True):
     if((j >= s_y-20) or (j <= 19)): d_y = d_y*-1 
     
     # Debug
-    print(math.sqrt((I - i)**2 + (J - j)**2))
     
     # Condicion para cuando la rebotadora se vaya acercando, si la distancia es menor o igual a 100 se mueva
     if(math.sqrt((I - i)**2 + (J - j)**2) <= 100):
         # Se mueve en sentido contrario a la pelota
-        I = I + (-1*d_x)    
+        I = I + (-1*d_x)
         J = J + (-1*d_y)
-    
-    
-    
+        print(time)
+        print("CERCA")
+        
     cv.imshow('img', img)
-    cv.waitKey(1)
+
+    if cv.waitKey(30) & 0xF77 == 27:
+        break
+
+    
+cv.destroyAllWindows()
+
     
