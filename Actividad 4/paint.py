@@ -23,6 +23,8 @@ brown = (28,44,82)
 aqua = (255,237,11)
 orange = (72,143,240)
 
+current = green
+
 punto_anterior = None
 umbral_distancia = 50  # para evitar trazos largos falsos
 
@@ -54,14 +56,48 @@ while True:
         cy = int(momentos["m01"] / momentos["m00"])
         punto_actual = (cx, cy)
 
+        if((cx <= 110 and cx >= 20) and (cy <= 100 and cy >= 20)):
+            print("Blue")
+            current = blue
+        
+        if((cx <= 210 and cx >= 120) and (cy <= 100 and cy >= 20)):
+            print("Green")
+            current = green
+            
+        if((cx <= 310 and cx >= 220) and (cy <= 100 and cy >= 20)):
+            print("Rojo")
+            current = red
+            
+        if((cx <= 410 and cx >= 320) and (cy <= 100 and cy >= 20)):
+            print("Amarillo")
+            current = yellow
+        
+        if((cx <= 1600 and cx >= 1510) and (cy <= 100 and cy >= 20)):
+            print("Pink")
+            current = pink
+            
+        if((cx <= 1700 and cx >= 1610) and (cy <= 100 and cy >= 20)):
+            print("Brown")
+            current = brown
+
+        if((cx <= 1800 and cx >= 1710) and (cy <= 100 and cy >= 20)):
+            
+            current = aqua
+            
+        if((cx <= 1900 and cx >= 1810) and (cy <= 100 and cy >= 20)):
+            print("Orange")
+            current = orange
+        
+        print(current)
+        
         # Dibujar punto en la cámara
-        cv2.circle(cuadro, punto_actual, 5, (0, 0, 255), -1)
+        cv2.circle(cuadro, punto_actual, 5, current, -1)
 
         # Dibujar línea en el lienzo si el salto no es muy grande
         if punto_anterior is not None:
             distancia = np.linalg.norm(np.array(punto_actual) - np.array(punto_anterior))
             if distancia < umbral_distancia:
-                cv2.line(lienzo, punto_anterior, punto_actual, (0, 255, 0), 5)
+                cv2.line(lienzo, punto_anterior, punto_actual, current, 5)
 
         punto_anterior = punto_actual
     else:
