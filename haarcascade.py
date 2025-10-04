@@ -27,6 +27,7 @@ while True:
         # img = cv.rectangle(img, (x+ int(w*.09), y+int(h*0.375)), (x + int(w*0.15), y + int(h*0.65)), (71,190,155), 5) # Oreja 1
         # img = cv.rectangle(img, (x+ int(w*.85), y+int(h*0.375)), (x + int(w*0.91), y + int(h*0.65)), (71,190,155), 5) # Oreja 2
         
+        # Sombrero
         img = cv.rectangle(img, (x+ int(w*.15), y+int(h*.05)), (x + int(w*0.85), y + int(h*-.5)), (0,0,0), -1)
         img = cv.rectangle(img, (x+ int(w*-.15), y+int(h*.08)), (x + int(w*1.15), y + int(h*.05)), (0,0,0), -1)
         
