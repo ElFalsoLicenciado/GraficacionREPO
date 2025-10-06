@@ -23,12 +23,16 @@ brown = (28,44,82)
 aqua = (255,237,11)
 orange = (72,143,240)
 
-current = green
+cu_color = green
+cu_shape = 0
 
 punto_anterior = None
 umbral_distancia = 50  # para evitar trazos largos falsos
 
 size = 10
+
+bx_1 = 200
+bx_2 = 250
 
 while True:
     
@@ -55,13 +59,28 @@ while True:
     mid_y = h // 2
 
     # Botón "+"
-    cv2.rectangle(cuadro, (400,int(mid_y*.92)), (450,int(mid_y*1.01)), (255,255,255), -1)
-    cv2.putText(cuadro, "+", (400,int(mid_y)), cv2.FONT_HERSHEY_SIMPLEX, 2, (0,0,0), 3)
+    cv2.rectangle(cuadro, (bx_1,int(mid_y*.92)), (bx_2,int(mid_y*1.01)), (255,255,255), -1)
+    cv2.putText(cuadro, "+", (bx_1,int(mid_y)), cv2.FONT_HERSHEY_SIMPLEX, 2, (0,0,0), 3)
 
     # Botón "-"
-    cv2.rectangle(cuadro, (400,int(mid_y*1.12)), (450,int(mid_y*1.21)), (255,255,255), -1)
-    cv2.putText(cuadro, "-", (400, int(mid_y*1.2)), cv2.FONT_HERSHEY_SIMPLEX, 2, (0,0,0), 3)
+    cv2.rectangle(cuadro, (bx_1,int(mid_y*1.12)), (bx_2,int(mid_y*1.21)), (255,255,255), -1)
+    cv2.putText(cuadro, "-", (bx_1, int(mid_y*1.2)), cv2.FONT_HERSHEY_SIMPLEX, 2, (0,0,0), 3)
+    
+    # Botón "circulo"
+    cv2.rectangle(cuadro, (bx_1,int(mid_y*1.52)), (bx_2,int(mid_y*1.61)), (255,255,255), -1)
+    cv2.circle(cuadro, ((bx_2+bx_1)//2, int(mid_y*1.565)), int(h*0.018) , (0,0,0), -1)
 
+    # Boton "rectangulo"
+    cv2.rectangle(cuadro, (bx_1,int(mid_y*1.32)), (bx_2,int(mid_y*1.41)), (255,255,255), -1)
+    cv2.rectangle(cuadro, (int(bx_1*1.05),int(mid_y*1.335)), (int(bx_2*0.95),int(mid_y*1.40)), (0,0,0), -1)
+
+    # Boton "linea"
+    cv2.rectangle(cuadro, (bx_1,int(mid_y*1.72)), (bx_2,int(mid_y*1.81)), (255,255,255), -1)
+    cv2.line(cuadro, (int(bx_1*1.04),int(mid_y*1.73)), (int(bx_2*0.99),int(mid_y*1.794)), (0,0,0), 5)
+
+    # cv2.line(lienzo, punto_anterior, punto_actual, cu_color, 5)
+
+    
 
     
 
@@ -72,57 +91,73 @@ while True:
         cy = int(momentos["m01"] / momentos["m00"])
         punto_actual = (cx, cy)
 
-        if((cx >= 400 and cx <= 450) and (cy >= int(mid_y*.92) and cy <= (mid_y*1.01) and size <= 800)):
+        if((cx >= bx_1 and cx <= bx_2) and (cy >= int(mid_y*.92) and cy <= (mid_y*1.01) and size <= 800)):
             size+=2
             print("Mas")
             
-        if((cx >= 400 and cx <= 450) and (cy >= int(mid_y*1.01) and cy <= (mid_y*1.21) and size >= 10)):
+        if((cx >= bx_1 and cx <= bx_2) and (cy >= int(mid_y*1.12) and cy <= (mid_y*1.21) and size >= 10)):
             size-=2
             print("Menos")
         
+        if((cx >= bx_1 and cx <= bx_2) and (cy >= int(mid_y*1.32) and cy <= (mid_y*1.41))):
+            cu_shape = 1
+            print("Cuadrado")
+            
+        if((cx >= bx_1 and cx <= bx_2) and (cy >= int(mid_y*1.52) and cy <= (mid_y*1.61))):
+            cu_shape = 0
+            print("Circulo")
+            
+        if((cx >= bx_1 and cx <= bx_2) and (cy >= int(mid_y*1.72) and cy <= (mid_y*1.81))):
+            cu_shape = 2
+            print("Linea")
         
         if((cx >= int(w*0.01) and cx <= int(w*0.05)) and (cy <= 100 and cy >= 20)):
             print("Blue")
-            current = blue
+            cu_color = blue
         
         if((cx >= int(w*0.06) and cx <= int(w*0.010)) and (cy <= 100 and cy >= 20)):
             print("Green")
-            current = green
+            cu_color = green
             
         if((cx >= int(w*0.11) and cx <= int(w*0.15)) and (cy <= 100 and cy >= 20)):
             print("Rojo")
-            current = red
+            cu_color = red
             
         if((cx >= int(w*0.16) and cx <= int(w*0.20)) and (cy <= 100 and cy >= 20)):
             print("Amarillo")
-            current = yellow
+            cu_color = yellow
         
         if((cx >= int(w*0.85) and cx <= int(w*0.89)) and (cy <= 100 and cy >= 20)):
             print("Pink")
-            current = pink
+            cu_color = pink
             
         if((cx >= int(w*0.80) and cx <= int(w*0.80)) and (cy <= 100 and cy >= 20)):
             print("Brown")
-            current = brown
+            cu_color = brown
 
         if((cx >= int(w*0.90) and cx <= int(w*0.94)) and (cy <= 100 and cy >= 20)):
             print("Aqua")
-            current = aqua
+            cu_color = aqua
             
         if((cx >= int(w*0.95) and cx <= int(w*0.99)) and (cy <= 100 and cy >= 20)):
             print("Orange")
-            current = orange
+            cu_color = orange
         
         print(f"{cx},{cy}")
         
         # Dibujar punto en la cámara
-        cv2.circle(cuadro, punto_actual, size, current, -1)
-
-        # Dibujar línea en el lienzo si el salto no es muy grande
-        if punto_anterior is not None:
-            distancia = np.linalg.norm(np.array(punto_actual) - np.array(punto_anterior))
-            if distancia < umbral_distancia:
-                cv2.line(lienzo, punto_anterior, punto_actual, current, 5)
+        match cu_shape:
+            case 0: 
+                cv2.circle(cuadro, punto_actual, size, cu_color, -1)
+                cv2.circle(lienzo, punto_actual, size, cu_color, -1)
+            case 1: 
+                cv2.rectangle(cuadro,(cx-size, cy-size), (cx+size, cy+size), cu_color,-1)
+                cv2.rectangle(lienzo,(cx-size, cy-size), (cx+size, cy+size), cu_color,-1)
+            case 2:# Dibujar línea en el lienzo si el salto no es muy grande
+                cv2.circle(cuadro, punto_actual, size, cu_color, -1)
+                if punto_anterior is not None:
+                    distancia = np.linalg.norm(np.array(punto_actual) - np.array(punto_anterior))
+                    if distancia < umbral_distancia: cv2.line(lienzo, punto_anterior, punto_actual, cu_color, size)
 
         punto_anterior = punto_actual
     else:
