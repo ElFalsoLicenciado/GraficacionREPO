@@ -26,12 +26,16 @@ while True:
         
         if(dir_x == delta_x): i_x = 0
         if(dir_y == delta_y): i_y = 0
-    
-    
+
+        print("prepucio")
+        
         if((dir_x == delta_x) and (dir_y == delta_y)):
             print("Entramos a chambear")
             dir_x = r.randint(int(-1*(w//16)),int(1*(w//16)))
             dir_y = r.randint(int(-1*(w//16)),int(1*(w//16)))
+            
+            if(dir_x == delta_x): i_x = 0
+            if(dir_y == delta_y): i_y = 0
             
             if(dir_x > delta_x): 
                 i_x = 1
@@ -46,6 +50,9 @@ while True:
             else: 
                 i_y = -1
                 print("-IY")
+
+        
+    
             
         delta_x += i_x
         delta_y += i_y
