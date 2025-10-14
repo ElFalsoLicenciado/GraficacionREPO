@@ -5,7 +5,7 @@ import os
 
 # Crea una imagen de 500x500 píxeles, todos con valor 240 (gris claro). 
 # La imagen tiene solo un canal (escala de grises) y está inicializada con valores de tipo uint8 (enteros sin signo de 8 bits).
-p = 12
+p = 1
 size = (p*8)*10
 margin = p*3
 

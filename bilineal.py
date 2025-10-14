@@ -9,7 +9,7 @@ from PIL import Image
 # Rotar 45 grados, aplicar filtro bilineal
 
 
-img1 = cv.imread('fgeed.jpg',0 )
+img1 = cv.imread('base.png',0 )
 x , y = img1.shape
 
 img1_edited = np.zeros((x*2,y*2), dtype=np.uint8)
@@ -142,7 +142,7 @@ cv.destroyAllWindows()
 # Filtro bilineal
 
 
-img2 = cv.imread('sonic.jpg',0 )
+img2 = cv.imread('base.png',0 )
 x , y = img2.shape
 
 img2_edited = np.zeros((x*2,y*2), dtype=np.uint8)
@@ -217,9 +217,10 @@ cv.destroyAllWindows()
 ### Imagen 3
 # Trasladar imagen al centro
 # Escalar 2
+# Rotar 90
 # Filtro bilineal
 
-img3 = cv.imread('perate.jpg',0 )
+img3 = cv.imread('base.png',0 )
 x , y = img3.shape
 
 img3_edited = np.zeros((x*2,y*2), dtype=np.uint8)
