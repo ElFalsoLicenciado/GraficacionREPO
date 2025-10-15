@@ -117,17 +117,17 @@ def diagonal(imagen, i,j):
 
 
 img1 = escalado(img, 2)
-cv.imshow('Escalado', img1)
+# cv.imshow('Escalado', img1)
 img1 = filtro_bilineal(img1)
-cv.imshow('Filtrado #1', img1)
+# cv.imshow('Filtrado #1', img1)
 
 img1 = rotacion(img1, 45)
-cv.imshow('Rotado', img1)
+# cv.imshow('Rotado', img1)
 img1 = filtro_bilineal(img1)
-cv.imshow('Filtrado #2', img1)
+cv.imshow('Imagen 1', img1)
 
-cv.waitKey(0)
-cv.destroyAllWindows()
+# cv.waitKey(0)
+# cv.destroyAllWindows()
 
 ### Imagen 2 
 # Escalar 2
@@ -135,16 +135,16 @@ cv.destroyAllWindows()
 # Filtro bilineal
 
 img2 = escalado(img, 2)
-cv.imshow('Escalado', img2)
+# cv.imshow('Escalado', img2)
 
 img2 = rotacion(img2, 45)
-cv.imshow('Rotado', img2)
+# cv.imshow('Rotado', img2)
 
 img2 = filtro_bilineal(img2)
-cv.imshow('Filtrado', img2)
+cv.imshow('Imagen 2', img2)
 
-cv.waitKey(0)
-cv.destroyAllWindows()
+# cv.waitKey(0)
+# cv.destroyAllWindows()
 
 ### Imagen 3
 # Trasladar imagen al centro
@@ -153,16 +153,16 @@ cv.destroyAllWindows()
 # Filtro bilineal
 
 img3 = traslacion(img, x//2, y//2)
-cv.imshow('Traslado', img3)
+# cv.imshow('Traslado', img3)
 
 img3 = escalado(img3, 2)
-cv.imshow('Escalado', img3)
+# cv.imshow('Escalado', img3)
 
 img3 = rotacion(img,90)
-cv.imshow('Rotado', img3)
+# cv.imshow('Rotado', img3)
 
 img3 = filtro_bilineal(img3)
-cv.imshow('Finalizado', img3)
+cv.imshow('Imagen 3', img3)
 
 cv.waitKey(0)
 cv.destroyAllWindows()
