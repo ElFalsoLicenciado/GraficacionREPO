@@ -39,12 +39,12 @@ def display():
     glEnd()
     
     glBegin(GL_TRIANGLES)
-    glColor3f(0.0, 0.0, 1.0)  # Rojo
+    glColor3f(0.0, 0.0, 1.0)  # Azul
     glVertex3f(2.0, 0.0, 0.0)
     glColor3f(0.0, 1.0, 0.0)  # Verde
     glVertex3f(0.0, 0.0, 0.0)
-    glColor3f(1.0, 0.0, 0.0)  # Azul
-    glVertex3f(1.0, -1.0, 0.0)
+    glColor3f(1.0, 0.0, 0.0)  # Rojo
+    glVertex3f(1.0, -2.0, 0.0)
     glEnd()
 
     glutSwapBuffers()  # Intercambiar buffers
