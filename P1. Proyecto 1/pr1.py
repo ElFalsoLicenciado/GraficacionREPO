@@ -8,8 +8,8 @@ hands = mp_hands.Hands(min_detection_confidence=0.5, min_tracking_confidence=0.5
 
 camara = cv2.VideoCapture(0)
 
-ret, cuadro = camara.read()
-lienzo = np.zeros_like(cuadro)
+ret, frame = camara.read()
+lienzo = np.zeros_like(frame)                      # Lienzo para colorear
 
 # Declaracion de variables para los colores
 blue = (255,0,0) 
@@ -23,7 +23,8 @@ aqua = (255,237,11)
 orange = (72,143,240)
 
 cu_color = green                                    # Color seleccionado
-cu_shape = 0                                        # Figura de la brocha
+cu_shape = "line"                                  # Figura de la brocha
+cu_mode = "draw"
 
 
 size = 10                                           # Tamaño de la brocha
@@ -62,10 +63,24 @@ while camara.isOpened():                            # Ciclo para examinar los fr
             elif label == 'Right': 
                 right_index = (x,y)
                 cv2.circle(frame, right_index, 4, blue, -1)   # Circulo azul en derecho
+    
+    if cu_mode == "draw" and left_index != None:
+        
+        match cu_shape:
+            case "line":
+               cv2.circle(lienzo, left_index, size, cu_color, -1) 
+            
+            case "circle":
+                cv2.circle(lienzo, left_index, size, cu_color, -1)
                 
+        
+    
+    
+    
     cv2.imshow("Salida", frame)                        # Abrir una ventana mostrando el resultado
     
     if cv2.waitKey(1) & 0xFF == ord('q'): break
+    
     
 camara.release()
 cv2.destroyAllWindows
