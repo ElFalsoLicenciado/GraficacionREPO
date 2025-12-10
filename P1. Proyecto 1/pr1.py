@@ -30,11 +30,15 @@ size = 10                                           # Tamaño de la brocha
 last_point = None
 max_length = 50
 
+bx_1 = 200
+bx_2 = 250
+
+
 while camara.isOpened():                            # Ciclo para examinar los frames
     
     ret, frame = camara.read()                      # Obtener el fotograma
     
-    h, w, _ = frame.shape                           # Obtener la anchura y altura del frame
+    h, w, = 1200, 1920                         # Obtener la anchura y altura del frame
     
     if not ret: break
     
@@ -65,27 +69,60 @@ while camara.isOpened():                            # Ciclo para examinar los fr
                 right_index = (x,y)
                 cv2.circle(frame, right_index, 4, blue, -1)   # Circulo azul en derecho
     
-    if cu_mode == "draw" and left_index != None:
+    if cu_mode == "draw":
+        cv2.rectangle(frame, (int(w*0.01),20), (int(w*0.05),100), blue, -1) # Azul
+        cv2.rectangle(frame, (int(w*0.06),20), (int(w*0.10),100), green, -1) # Verde
+        cv2.rectangle(frame, (int(w*0.11),20), (int(w*0.15),100), red, -1) #  Rojo
+        cv2.rectangle(frame, (int(w*0.16),20), (int(w*0.20),100), yellow, -1) # Amarillo
         
-        match cu_shape:
-            case "line":
-                if last_point is not None:
-                    length = np.linalg.norm(np.array(left_index) - np.array(last_point))
-                    if length < max_length: cv2.line(lienzo, last_point, left_index , size, cu_color, -1) 
-            
-            case "circle":
-                cv2.circle(lienzo, left_index, size, cu_color, -1)
+        
+        cv2.rectangle(frame, (int(w*0.80),20), (int(w*0.84),100), brown, -1) # Cafe
+        cv2.rectangle(frame, (int(w*0.85),20), (int(w*0.89),100), pink, -1) # Rosa
+        cv2.rectangle(frame, (int(w*0.90),20), (int(w*0.94),100), aqua, -1) # Aqua
+        cv2.rectangle(frame, (int(w*0.95),20), (int(w*0.99),100), orange, -1) # Naranja
+        
+        mid_y = h // 2
+
+    # Botón "+"
+        cv2.rectangle(frame, (bx_1,int(mid_y*.92)), (bx_2,int(mid_y*1.01)), (255,255,255), -1)
+        cv2.putText(frame, "+", (bx_1,int(mid_y)), cv2.FONT_HERSHEY_SIMPLEX, 2, (0,0,0), 3)
+
+        # Botón "-"
+        cv2.rectangle(frame, (bx_1,int(mid_y*1.12)), (bx_2,int(mid_y*1.21)), (255,255,255), -1)
+        cv2.putText(frame, "-", (bx_1, int(mid_y*1.2)), cv2.FONT_HERSHEY_SIMPLEX, 2, (0,0,0), 3)
+        
+        # Botón "circulo"
+        cv2.rectangle(frame, (bx_1,int(mid_y*1.52)), (bx_2,int(mid_y*1.61)), (255,255,255), -1)
+        cv2.circle(frame, ((bx_2+bx_1)//2, int(mid_y*1.565)), int(h*0.018) , (0,0,0), -1)
+
+        # Boton "rectangulo"
+        cv2.rectangle(frame, (bx_1,int(mid_y*1.32)), (bx_2,int(mid_y*1.41)), (255,255,255), -1)
+        cv2.rectangle(frame, (int(bx_1*1.05),int(mid_y*1.335)), (int(bx_2*0.95),int(mid_y*1.40)), (0,0,0), -1)
+
+        # Boton "linea"
+        cv2.rectangle(frame, (bx_1,int(mid_y*1.72)), (bx_2,int(mid_y*1.81)), (255,255,255), -1)
+        cv2.line(frame, (int(bx_1*1.04),int(mid_y*1.73)), (int(bx_2*0.99),int(mid_y*1.794)), (0,0,0), 5)
+        
+        if left_index != None:
+            match cu_shape:
+                case "line":
+                    if last_point is not None:
+                        length = np.linalg.norm(np.array(left_index) - np.array(last_point))
+                        if length < max_length: cv2.line(lienzo, last_point, left_index , cu_color, size) 
                 
-            case "rectangle":
-                cv2.rectangle(lienzo, (int(left_index[0])-size, int(left_index[1])-size), (int(left_index[0])+size, int(left_index[1])+size), cu_color, -1)
-            
-            
-        last_point = index_tip
-    else: last_point = None   
+                case "circle":
+                    cv2.circle(lienzo, left_index, size, cu_color, -1)
+                    
+                case "rectangle":
+                    cv2.rectangle(lienzo, (int(left_index[0])-size, int(left_index[1])-size), (int(left_index[0])+size, int(left_index[1])+size), cu_color, -1)
+                
+                
+            last_point = left_index
+        else: last_point = None   
     
-    merge = cv2.add(frame, lienzo)  
+    merge = cv2.add(frame, lienzo) # Combinar ambos para generar una sola imagen unificada.
         
-    cv2.imshow("Normal", frame)                        # Abrir una ventana mostrando el resultado
+    # cv2.imshow("Normal", frame)                        
     cv2.imshow("Dibujo", merge)
     
     if cv2.waitKey(1) & 0xFF == ord('q'): break
