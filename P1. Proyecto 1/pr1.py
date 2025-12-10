@@ -23,11 +23,12 @@ aqua = (255,237,11)
 orange = (72,143,240)
 
 cu_color = green                                    # Color seleccionado
-cu_shape = "line"                                  # Figura de la brocha
-cu_mode = "draw"
+cu_shape = "line"                                 # Figura de la brocha
+cu_mode = "draw"                                    # Modo de paint o dibujo de primitivas
+size = 10                                           # Tamaño de la brocha                   
 
-
-size = 10                                           # Tamaño de la brocha
+last_point = None
+max_length = 50
 
 while camara.isOpened():                            # Ciclo para examinar los frames
     
@@ -68,16 +69,24 @@ while camara.isOpened():                            # Ciclo para examinar los fr
         
         match cu_shape:
             case "line":
-               cv2.circle(lienzo, left_index, size, cu_color, -1) 
+                if last_point is not None:
+                    length = np.linalg.norm(np.array(left_index) - np.array(last_point))
+                    if length < max_length: cv2.line(lienzo, last_point, left_index , size, cu_color, -1) 
             
             case "circle":
                 cv2.circle(lienzo, left_index, size, cu_color, -1)
                 
+            case "rectangle":
+                cv2.rectangle(lienzo, (int(left_index[0])-size, int(left_index[1])-size), (int(left_index[0])+size, int(left_index[1])+size), cu_color, -1)
+            
+            
+        last_point = index_tip
+    else: last_point = None   
+    
+    merge = cv2.add(frame, lienzo)  
         
-    
-    
-    
-    cv2.imshow("Salida", frame)                        # Abrir una ventana mostrando el resultado
+    cv2.imshow("Normal", frame)                        # Abrir una ventana mostrando el resultado
+    cv2.imshow("Dibujo", merge)
     
     if cv2.waitKey(1) & 0xFF == ord('q'): break
     
