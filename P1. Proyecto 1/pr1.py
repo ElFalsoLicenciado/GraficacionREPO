@@ -30,15 +30,15 @@ size = 10                                           # Tamaño de la brocha
 last_point = None
 max_length = 50
 
-bx_1 = 200
-bx_2 = 250
+bx_1 = 100
+bx_2 = 150
 
 
 while camara.isOpened():                            # Ciclo para examinar los frames
     
     ret, frame = camara.read()                      # Obtener el fotograma
     
-    h, w, = 1200, 1920                         # Obtener la anchura y altura del frame
+    h, w, = 1200, 1920                              # Obtener la anchura y altura del frame
     
     if not ret: break
     
@@ -83,27 +83,83 @@ while camara.isOpened():                            # Ciclo para examinar los fr
         
         mid_y = h // 2
 
-    # Botón "+"
-        cv2.rectangle(frame, (bx_1,int(mid_y*.92)), (bx_2,int(mid_y*1.01)), (255,255,255), -1)
-        cv2.putText(frame, "+", (bx_1,int(mid_y)), cv2.FONT_HERSHEY_SIMPLEX, 2, (0,0,0), 3)
+        # Botón "+"
+        cv2.rectangle(frame, (bx_1,int(mid_y*.85)), (bx_2,int(mid_y*0.94)), (255,255,255), -1)
+        cv2.putText(frame, "+", (bx_1,int(mid_y*.93)), cv2.FONT_HERSHEY_SIMPLEX, 2, (0,0,0), 3)
 
         # Botón "-"
-        cv2.rectangle(frame, (bx_1,int(mid_y*1.12)), (bx_2,int(mid_y*1.21)), (255,255,255), -1)
-        cv2.putText(frame, "-", (bx_1, int(mid_y*1.2)), cv2.FONT_HERSHEY_SIMPLEX, 2, (0,0,0), 3)
+        cv2.rectangle(frame, (bx_1,int(mid_y*1.05)), (bx_2,int(mid_y*1.14)), (255,255,255), -1)
+        cv2.putText(frame, "-", (bx_1, int(mid_y*1.13)), cv2.FONT_HERSHEY_SIMPLEX, 2, (0,0,0), 3)
+    
+        # Boton "rectangulo"
+        cv2.rectangle(frame, (bx_1,int(mid_y*1.25)), (bx_2,int(mid_y*1.34)), (255,255,255), -1)
+        cv2.rectangle(frame, (int(bx_1*1.05),int(mid_y*1.265)), (int(bx_2*0.95),int(mid_y*1.33)), (0,0,0), -1)
+    
         
         # Botón "circulo"
-        cv2.rectangle(frame, (bx_1,int(mid_y*1.52)), (bx_2,int(mid_y*1.61)), (255,255,255), -1)
-        cv2.circle(frame, ((bx_2+bx_1)//2, int(mid_y*1.565)), int(h*0.018) , (0,0,0), -1)
-
-        # Boton "rectangulo"
-        cv2.rectangle(frame, (bx_1,int(mid_y*1.32)), (bx_2,int(mid_y*1.41)), (255,255,255), -1)
-        cv2.rectangle(frame, (int(bx_1*1.05),int(mid_y*1.335)), (int(bx_2*0.95),int(mid_y*1.40)), (0,0,0), -1)
+        cv2.rectangle(frame, (bx_1,int(mid_y*1.45)), (bx_2,int(mid_y*1.54)), (255,255,255), -1)
+        cv2.circle(frame, ((bx_2+bx_1)//2, int(mid_y*1.495)), int(h*0.018) , (0,0,0), -1)
 
         # Boton "linea"
-        cv2.rectangle(frame, (bx_1,int(mid_y*1.72)), (bx_2,int(mid_y*1.81)), (255,255,255), -1)
-        cv2.line(frame, (int(bx_1*1.04),int(mid_y*1.73)), (int(bx_2*0.99),int(mid_y*1.794)), (0,0,0), 5)
+        cv2.rectangle(frame, (bx_1,int(mid_y*1.65)), (bx_2,int(mid_y*1.74)), (255,255,255), -1)
+        cv2.line(frame, (int(bx_1*1.07),int(mid_y*1.66)), (int(bx_2*0.94),int(mid_y*1.724)), (0,0,0), 5)
         
         if left_index != None:
+            
+            if((left_index[0] >= bx_1 and left_index[0] <= bx_2) and (left_index[1] >= int(mid_y*.85) and left_index[1] <= (mid_y*0.94) and size <= 800)):
+                size+=2
+                print("Mas")
+            
+            if((left_index[0] >= bx_1 and left_index[0] <= bx_2) and (left_index[1] >= int(mid_y*1.05) and left_index[1] <= (mid_y*1.14) and size >= 10)):
+                size-=2
+                print("Menos")
+            
+            if((left_index[0] >= bx_1 and left_index[0] <= bx_2) and (left_index[1] >= int(mid_y*1.25) and left_index[1] <= (mid_y*1.34))):
+                cu_shape = "rectangle"
+                print("Rectangle")
+                
+            if((left_index[0] >= bx_1 and left_index[0] <= bx_2) and (left_index[1] >= int(mid_y*1.45) and left_index[1] <= (mid_y*1.54))):
+                cu_shape = "circle"
+                print("Circle")
+                
+            if((left_index[0] >= bx_1 and left_index[0] <= bx_2) and (left_index[1] >= int(mid_y*1.65) and left_index[1] <= (mid_y*1.74))):
+                cu_shape = "line"
+                print("Line")
+            
+            if((left_index[0] >= int(w*0.01) and left_index[0] <= int(w*0.05)) and (left_index[1] <= 100 and left_index[1] >= 20)):
+                print("Blue")
+                cu_color = blue
+            
+            if((left_index[0] >= int(w*0.06) and left_index[0] <= int(w*0.10)) and (left_index[1] <= 100 and left_index[1] >= 20)):
+                print("Green")
+                cu_color = green
+                
+            if((left_index[0] >= int(w*0.11) and left_index[0] <= int(w*0.15)) and (left_index[1] <= 100 and left_index[1] >= 20)):
+                print("Red")
+                cu_color = red
+                
+            if((left_index[0] >= int(w*0.16) and left_index[0] <= int(w*0.20)) and (left_index[1] <= 100 and left_index[1] >= 20)):
+                print("Yellow")
+                cu_color = yellow
+            
+            if((left_index[0] >= int(w*0.85) and left_index[0] <= int(w*0.89)) and (left_index[1] <= 100 and left_index[1] >= 20)):
+                print("Pink")
+                cu_color = pink
+                
+            if((left_index[0] >= int(w*0.80) and left_index[0] <= int(w*0.84)) and (left_index[1] <= 100 and left_index[1] >= 20)):
+                print("Brown")
+                cu_color = brown
+
+            if((left_index[0] >= int(w*0.90) and left_index[0] <= int(w*0.94)) and (left_index[1] <= 100 and left_index[1] >= 20)):
+                print("Aqua")
+                cu_color = aqua
+                
+            if((left_index[0] >= int(w*0.95) and left_index[0] <= int(w*0.99)) and (left_index[1] <= 100 and left_index[1] >= 20)):
+                print("Orange")
+                cu_color = orange
+                
+            
+            
             match cu_shape:
                 case "line":
                     if last_point is not None:

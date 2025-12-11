@@ -115,7 +115,7 @@ while True:
             print("Blue")
             cu_color = blue
         
-        if((cx >= int(w*0.06) and cx <= int(w*0.010)) and (cy <= 100 and cy >= 20)):
+        if((cx >= int(w*0.06) and cx <= int(w*0.10)) and (cy <= 100 and cy >= 20)):
             print("Green")
             cu_color = green
             
@@ -131,7 +131,7 @@ while True:
             print("Pink")
             cu_color = pink
             
-        if((cx >= int(w*0.80) and cx <= int(w*0.80)) and (cy <= 100 and cy >= 20)):
+        if((cx >= int(w*0.80) and cx <= int(w*0.84)) and (cy <= 100 and cy >= 20)):
             print("Brown")
             cu_color = brown
 
