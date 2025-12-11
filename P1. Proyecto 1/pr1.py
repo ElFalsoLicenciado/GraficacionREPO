@@ -1,4 +1,4 @@
-import cv2
+import cv2 as cv
 import mediapipe as mp
 import numpy as np
 
@@ -6,7 +6,7 @@ mp_hands = mp.solutions.hands
 mp_drawing = mp.solutions.drawing_utils
 hands = mp_hands.Hands(min_detection_confidence=0.5, min_tracking_confidence=0.5)
 
-camara = cv2.VideoCapture(0)
+camara = cv.VideoCapture(0)
 
 ret, frame = camara.read()
 lienzo = np.zeros_like(frame)                       # Lienzo para colorear 
@@ -31,10 +31,13 @@ colors = (blue, green, red, yellow, pink, brown, aqua, orange)
 color_index = 0
 shapes = ("line", "circle", "rectangle")
 shape_index = 0
+editor_mode = ("waiting","adding","move", "scale", "rotate", "finish")
+editor_index = 0
 
-cu_color = colors[color_index]                      # Color seleccionado
-cu_shape = "line"                                   # Figura de la brocha
 cu_mode = mode_names[0]                             # Modo de paint o dibujo de primitivas
+cu_color = colors[color_index]                      # Color seleccionado
+cu_shape = shapes[shape_index]                      # Figura de la brocha
+cu_editor_mode = editor_mode[editor_index]          # Configuracion al colocarl primitivas
 size = 10                                           # Tamaño de la brocha                   
 
 current_point = None
@@ -57,14 +60,14 @@ while camara.isOpened():                            # Ciclo para examinar los fr
     
     if not ret: break
     
-    frame = cv2.flip(frame,1)                       # Girar el video
+    frame = cv.flip(frame,1)                       # Girar el video
     
     # Cambiar de BRG a RGB para que charche
-    frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)  
+    frame_rgb = cv.cvtColor(frame, cv.COLOR_BGR2RGB)  
     results = hands.process(frame_rgb)
     
-    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-    mascara = cv2.inRange(hsv, u_bajo, u_alto)
+    hsv = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
+    mascara = cv.inRange(hsv, u_bajo, u_alto)
     
     
     left_index = None
@@ -80,56 +83,56 @@ while camara.isOpened():                            # Ciclo para examinar los fr
             
             if label == 'Left': 
                 left_index = (x,y)
-                cv2.circle(frame, left_index, 4, red, -1)     # Circulo rojo en izquierdo
+                cv.circle(frame, left_index, 4, red, -1)     # Circulo rojo en izquierdo
                 
             elif label == 'Right': 
                 right_index = (x,y)
-                cv2.circle(frame, right_index, 4, blue, -1)   # Circulo azul en derecho
+                cv.circle(frame, right_index, 4, blue, -1)   # Circulo azul en derecho
     
 
-    cv2.rectangle(frame, (int(w*0.425),20), (int(w*0.475),100), (255,255,255), -1)                       # Cambiar de modo
-    cv2.putText(frame, cu_mode , (int(w*0.430),70), cv2.FONT_HERSHEY_SIMPLEX, 0.80, (0,0,0), 2)
+    cv.rectangle(frame, (int(w*0.425),20), (int(w*0.475),100), (255,255,255), -1)                       # Cambiar de modo
+    cv.putText(frame, cu_mode , (int(w*0.430),70), cv.FONT_HERSHEY_SIMPLEX, 0.80, (0,0,0), 2)
 
-    cv2.rectangle(frame, (int(w*0.525),20), (int(w*0.575),100), (255,255,255), -1)                       # Limpiar lienzo
-    cv2.putText(frame, "Limpiar", (int(w*0.527),70), cv2.FONT_HERSHEY_SIMPLEX, 0.80, (0,0,0), 2)
+    cv.rectangle(frame, (int(w*0.525),20), (int(w*0.575),100), (255,255,255), -1)                       # Limpiar lienzo
+    cv.putText(frame, "Limpiar", (int(w*0.527),70), cv.FONT_HERSHEY_SIMPLEX, 0.80, (0,0,0), 2)
     
     
     if cu_mode == "paint":
-        cv2.rectangle(frame, (int(w*0.01),20), (int(w*0.05),100), blue, -1)                             # Azul
-        cv2.rectangle(frame, (int(w*0.06),20), (int(w*0.10),100), green, -1)                            # Verde
-        cv2.rectangle(frame, (int(w*0.11),20), (int(w*0.15),100), red, -1)                              # Rojo
-        cv2.rectangle(frame, (int(w*0.16),20), (int(w*0.20),100), yellow, -1)                           # Amarillo
+        cv.rectangle(frame, (int(w*0.01),20), (int(w*0.05),100), blue, -1)                             # Azul
+        cv.rectangle(frame, (int(w*0.06),20), (int(w*0.10),100), green, -1)                            # Verde
+        cv.rectangle(frame, (int(w*0.11),20), (int(w*0.15),100), red, -1)                              # Rojo
+        cv.rectangle(frame, (int(w*0.16),20), (int(w*0.20),100), yellow, -1)                           # Amarillo
         
         
-        cv2.rectangle(frame, (int(w*0.80),20), (int(w*0.84),100), brown, -1)                            # Cafe
-        cv2.rectangle(frame, (int(w*0.85),20), (int(w*0.89),100), pink, -1)                             # Rosa
-        cv2.rectangle(frame, (int(w*0.90),20), (int(w*0.94),100), aqua, -1)                             # Aqua
-        cv2.rectangle(frame, (int(w*0.95),20), (int(w*0.99),100), orange, -1)                           # Naranja
+        cv.rectangle(frame, (int(w*0.80),20), (int(w*0.84),100), brown, -1)                            # Cafe
+        cv.rectangle(frame, (int(w*0.85),20), (int(w*0.89),100), pink, -1)                             # Rosa
+        cv.rectangle(frame, (int(w*0.90),20), (int(w*0.94),100), aqua, -1)                             # Aqua
+        cv.rectangle(frame, (int(w*0.95),20), (int(w*0.99),100), orange, -1)                           # Naranja
         
         mid_y = h // 2
 
 
-        cv2.rectangle(frame, (bx_1,int(mid_y*.85)), (bx_2,int(mid_y*0.94)), (255,255,255), -1)          # Botón "+"
-        cv2.putText(frame, "+", (bx_1,int(mid_y*.93)), cv2.FONT_HERSHEY_SIMPLEX, 2, (0,0,0), 3)
+        cv.rectangle(frame, (bx_1,int(mid_y*.85)), (bx_2,int(mid_y*0.94)), (255,255,255), -1)          # Botón "+"
+        cv.putText(frame, "+", (bx_1,int(mid_y*.93)), cv.FONT_HERSHEY_SIMPLEX, 2, (0,0,0), 3)
 
         
-        cv2.rectangle(frame, (bx_1,int(mid_y*1.05)), (bx_2,int(mid_y*1.14)), (255,255,255), -1)         # Botón "-"
-        cv2.putText(frame, "-", (bx_1, int(mid_y*1.13)), cv2.FONT_HERSHEY_SIMPLEX, 2, (0,0,0), 3)
+        cv.rectangle(frame, (bx_1,int(mid_y*1.05)), (bx_2,int(mid_y*1.14)), (255,255,255), -1)         # Botón "-"
+        cv.putText(frame, "-", (bx_1, int(mid_y*1.13)), cv.FONT_HERSHEY_SIMPLEX, 2, (0,0,0), 3)
     
         
-        cv2.rectangle(frame, (bx_1,int(mid_y*1.25)), (bx_2,int(mid_y*1.34)), (255,255,255), -1)         # Boton "rectangulo"
-        cv2.rectangle(frame, (int(bx_1*1.081),int(mid_y*1.266)), (int(bx_2*0.948),int(mid_y*1.3269)), (0,0,0), -1)
+        cv.rectangle(frame, (bx_1,int(mid_y*1.25)), (bx_2,int(mid_y*1.34)), (255,255,255), -1)         # Boton "rectangulo"
+        cv.rectangle(frame, (int(bx_1*1.081),int(mid_y*1.266)), (int(bx_2*0.948),int(mid_y*1.3269)), (0,0,0), -1)
     
         
         
-        cv2.rectangle(frame, (bx_1,int(mid_y*1.45)), (bx_2,int(mid_y*1.54)), (255,255,255), -1)         # Botón "circulo"
-        cv2.circle(frame, ((bx_2+bx_1)//2, int(mid_y*1.495)), int(h*0.018) , (0,0,0), -1)
+        cv.rectangle(frame, (bx_1,int(mid_y*1.45)), (bx_2,int(mid_y*1.54)), (255,255,255), -1)         # Botón "circulo"
+        cv.circle(frame, ((bx_2+bx_1)//2, int(mid_y*1.495)), int(h*0.018) , (0,0,0), -1)
 
         
-        cv2.rectangle(frame, (bx_1,int(mid_y*1.65)), (bx_2,int(mid_y*1.74)), (255,255,255), -1)         # Boton "linea"
-        cv2.line(frame, (int(bx_1*1.07),int(mid_y*1.66)), (int(bx_2*0.94),int(mid_y*1.724)), (0,0,0), 5)
+        cv.rectangle(frame, (bx_1,int(mid_y*1.65)), (bx_2,int(mid_y*1.74)), (255,255,255), -1)         # Boton "linea"
+        cv.line(frame, (int(bx_1*1.07),int(mid_y*1.66)), (int(bx_2*0.94),int(mid_y*1.724)), (0,0,0), 5)
         
-        momentos = cv2.moments(mascara)
+        momentos = cv.moments(mascara)
         if momentos["m00"] > 0:  # hay píxeles del color buscado
             cx = int(momentos["m10"] / momentos["m00"])
             cy = int(momentos["m01"] / momentos["m00"])
@@ -198,32 +201,32 @@ while camara.isOpened():                            # Ciclo para examinar los fr
                 case "line":
                     if last_point is not None:
                         length = np.linalg.norm(np.array(current_point) - np.array(last_point))
-                        if length < max_length: cv2.line(lienzo, last_point, current_point , cu_color, size) 
+                        if length < max_length: cv.line(lienzo, last_point, current_point , cu_color, size) 
                 
                 case "circle":
-                    cv2.circle(lienzo, current_point, size, cu_color, -1)
+                    cv.circle(lienzo, current_point, size, cu_color, -1)
                     
                 case "rectangle":
-                    cv2.rectangle(lienzo, (int(current_point[0])-size, int(current_point[1])-size), (int(current_point[0])+size, int(current_point[1])+size), cu_color, -1)
+                    cv.rectangle(lienzo, (int(current_point[0])-size, int(current_point[1])-size), (int(current_point[0])+size, int(current_point[1])+size), cu_color, -1)
                 
                 
             last_point = current_point
         else: last_point = None
     
     if cu_mode == "figures":
-        cv2.rectangle(frame, (bx_1,int(mid_y*.85)), (bx_2,int(mid_y*0.94)), cu_color, -1)          
+        cv.rectangle(frame, (bx_1,int(mid_y*.85)), (bx_2,int(mid_y*0.94)), cu_color, -1)          
 
         
-        cv2.rectangle(frame, (bx_1,int(mid_y*1.05)), (bx_2,int(mid_y*1.14)), (255,255,255), -1)         
+        cv.rectangle(frame, (bx_1,int(mid_y*1.05)), (bx_2,int(mid_y*1.14)), (255,255,255), -1)         
         match cu_shape:
             case "circle":
-                cv2.circle(frame, ((bx_2+bx_1)//2, int(mid_y*1.095)), int(h*0.018) , (0,0,0), -1)
+                cv.circle(frame, ((bx_2+bx_1)//2, int(mid_y*1.095)), int(h*0.018) , (0,0,0), -1)
                 
             case "rectangle":
-                cv2.rectangle(frame, (int(bx_1*1.081),int(mid_y*1.066)), (int(bx_2*0.948),int(mid_y*1.1269)), (0,0,0), -1)
+                cv.rectangle(frame, (int(bx_1*1.081),int(mid_y*1.066)), (int(bx_2*0.948),int(mid_y*1.1269)), (0,0,0), -1)
             
             case "line":
-                cv2.line(frame, (int(bx_1*1.07),int(mid_y*1.06)), (int(bx_2*0.94),int(mid_y*1.124)), (0,0,0), 5)        
+                cv.line(frame, (int(bx_1*1.07),int(mid_y*1.06)), (int(bx_2*0.94),int(mid_y*1.124)), (0,0,0), 5)        
                     
         
         # print(cooldown)
@@ -245,7 +248,23 @@ while camara.isOpened():                            # Ciclo para examinar los fr
                 if(shape_index < 2): shape_index = shape_index + 1
                 else:                shape_index = 0
                 cu_shape = shapes[shape_index]
-                cooldown = general_cooldown        
+                cooldown = general_cooldown
+        
+        tecla = cv.waitKey(1) & 0xFF
+        
+        
+        # Teclas para modo Figures:
+        # A == "AGREGAR"
+        # R == "ROTAR"
+        # T == "MOVER"
+        # S == "ESCALAR"
+        # E == "TERMINAR"
+        
+        
+        
+        if cu_editor_mode == "waiting":
+            
+                    
                 
                 
         
@@ -266,14 +285,14 @@ while camara.isOpened():                            # Ciclo para examinar los fr
     
     cooldown -= 1
         
-    merge = cv2.add(frame, lienzo) # Combinar ambos para generar una sola imagen unificada.
+    merge = cv.add(frame, lienzo) # Combinar ambos para generar una sola imagen unificada.
         
-    # cv2.imshow("Normal", frame)                        
-    cv2.imshow("Dibujo", merge)
+    # cv.imshow("Normal", frame)                        
+    cv.imshow("Dibujo", merge)
     
-    if cv2.waitKey(1) & 0xFF == ord('q'): break
+    if cv.waitKey(1) & 0xFF == ord('q'): break
     
     
 camara.release()
-cv2.destroyAllWindows
+cv.destroyAllWindows
     
