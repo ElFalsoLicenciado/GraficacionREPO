@@ -9,12 +9,19 @@ hands = mp_hands.Hands(min_detection_confidence=0.5, min_tracking_confidence=0.5
 camara = cv2.VideoCapture(0)
 
 ret, frame = camara.read()
-lienzo = np.zeros_like(frame)                      # Lienzo para colorear
+lienzo = np.zeros_like(frame)                       # Lienzo para colorear 
+
+# Rango del color rojo en HSV
+u_bajo = np.array([100, 50, 50])
+u_alto = np.array([130, 255, 255])
+
 
 mode_names = ("paint", "figures")
 
 cooldown = 0
-cooldown_frames = 15
+mode_cooldown = 30
+general_cooldown = 20
+
 
 # Declaracion de variables para los colores
 blue = (255,0,0) 
@@ -28,11 +35,11 @@ aqua = (255,237,11)
 orange = (72,143,240)
 
 cu_color = green                                    # Color seleccionado
-cu_shape = "line"                                 # Figura de la brocha
-cu_mode = mode_names[0]                                    # Modo de paint o dibujo de primitivas
+cu_shape = "line"                                   # Figura de la brocha
+cu_mode = mode_names[0]                             # Modo de paint o dibujo de primitivas
 size = 10                                           # Tamaño de la brocha                   
 
-
+current_point = None
 last_point = None
 max_length = 50
 
@@ -52,13 +59,14 @@ while camara.isOpened():                            # Ciclo para examinar los fr
     
     # Cambiar de BRG a RGB para que charche
     frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)  
-    
     results = hands.process(frame_rgb)
+    
+    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+    mascara = cv2.inRange(hsv, u_bajo, u_alto)
+    
     
     left_index = None
     right_index = None
-    
-
     
     # Detectar los landmarks que queremos
     if results.multi_hand_landmarks and results.multi_handedness:
@@ -108,7 +116,7 @@ while camara.isOpened():                            # Ciclo para examinar los fr
     
         
         cv2.rectangle(frame, (bx_1,int(mid_y*1.25)), (bx_2,int(mid_y*1.34)), (255,255,255), -1)         # Boton "rectangulo"
-        cv2.rectangle(frame, (int(bx_1*1.05),int(mid_y*1.265)), (int(bx_2*0.95),int(mid_y*1.33)), (0,0,0), -1)
+        cv2.rectangle(frame, (int(bx_1*1.081),int(mid_y*1.266)), (int(bx_2*0.948),int(mid_y*1.3269)), (0,0,0), -1)
     
         
         
@@ -119,57 +127,64 @@ while camara.isOpened():                            # Ciclo para examinar los fr
         cv2.rectangle(frame, (bx_1,int(mid_y*1.65)), (bx_2,int(mid_y*1.74)), (255,255,255), -1)         # Boton "linea"
         cv2.line(frame, (int(bx_1*1.07),int(mid_y*1.66)), (int(bx_2*0.94),int(mid_y*1.724)), (0,0,0), 5)
         
-        if left_index != None:
+        momentos = cv2.moments(mascara)
+        if momentos["m00"] > 0:  # hay píxeles del color buscado
+            cx = int(momentos["m10"] / momentos["m00"])
+            cy = int(momentos["m01"] / momentos["m00"])
+            current_point = (cx, cy)    
+        
+        
+        if current_point != None:
             
-            if((left_index[0] >= bx_1 and left_index[0] <= bx_2) and (left_index[1] >= int(mid_y*.85) and left_index[1] <= (mid_y*0.94) and size <= 800)):
+            if((current_point[0] >= bx_1 and current_point[0] <= bx_2) and (current_point[1] >= int(mid_y*.85) and current_point[1] <= (mid_y*0.94) and size <= 800)):
                 size+=2
                 print("Mas")
             
-            if((left_index[0] >= bx_1 and left_index[0] <= bx_2) and (left_index[1] >= int(mid_y*1.05) and left_index[1] <= (mid_y*1.14) and size >= 10)):
+            if((current_point[0] >= bx_1 and current_point[0] <= bx_2) and (current_point[1] >= int(mid_y*1.05) and current_point[1] <= (mid_y*1.14) and size >= 10)):
                 size-=2
                 print("Menos")
             
-            if((left_index[0] >= bx_1 and left_index[0] <= bx_2) and (left_index[1] >= int(mid_y*1.25) and left_index[1] <= (mid_y*1.34))):
+            if((current_point[0] >= bx_1 and current_point[0] <= bx_2) and (current_point[1] >= int(mid_y*1.25) and current_point[1] <= (mid_y*1.34))):
                 cu_shape = "rectangle"
                 print("Rectangle")
                 
-            if((left_index[0] >= bx_1 and left_index[0] <= bx_2) and (left_index[1] >= int(mid_y*1.45) and left_index[1] <= (mid_y*1.54))):
+            if((current_point[0] >= bx_1 and current_point[0] <= bx_2) and (current_point[1] >= int(mid_y*1.45) and current_point[1] <= (mid_y*1.54))):
                 cu_shape = "circle"
                 print("Circle")
                 
-            if((left_index[0] >= bx_1 and left_index[0] <= bx_2) and (left_index[1] >= int(mid_y*1.65) and left_index[1] <= (mid_y*1.74))):
+            if((current_point[0] >= bx_1 and current_point[0] <= bx_2) and (current_point[1] >= int(mid_y*1.65) and current_point[1] <= (mid_y*1.74))):
                 cu_shape = "line"
                 print("Line")
             
-            if((left_index[0] >= int(w*0.01) and left_index[0] <= int(w*0.05)) and (left_index[1] <= 100 and left_index[1] >= 20)):
+            if((current_point[0] >= int(w*0.01) and current_point[0] <= int(w*0.05)) and (current_point[1] <= 100 and current_point[1] >= 20)):
                 print("Blue")
                 cu_color = blue
             
-            if((left_index[0] >= int(w*0.06) and left_index[0] <= int(w*0.10)) and (left_index[1] <= 100 and left_index[1] >= 20)):
+            if((current_point[0] >= int(w*0.06) and current_point[0] <= int(w*0.10)) and (current_point[1] <= 100 and current_point[1] >= 20)):
                 print("Green")
                 cu_color = green
                 
-            if((left_index[0] >= int(w*0.11) and left_index[0] <= int(w*0.15)) and (left_index[1] <= 100 and left_index[1] >= 20)):
+            if((current_point[0] >= int(w*0.11) and current_point[0] <= int(w*0.15)) and (current_point[1] <= 100 and current_point[1] >= 20)):
                 print("Red")
                 cu_color = red
                 
-            if((left_index[0] >= int(w*0.16) and left_index[0] <= int(w*0.20)) and (left_index[1] <= 100 and left_index[1] >= 20)):
+            if((current_point[0] >= int(w*0.16) and current_point[0] <= int(w*0.20)) and (current_point[1] <= 100 and current_point[1] >= 20)):
                 print("Yellow")
                 cu_color = yellow
             
-            if((left_index[0] >= int(w*0.85) and left_index[0] <= int(w*0.89)) and (left_index[1] <= 100 and left_index[1] >= 20)):
+            if((current_point[0] >= int(w*0.85) and current_point[0] <= int(w*0.89)) and (current_point[1] <= 100 and current_point[1] >= 20)):
                 print("Pink")
                 cu_color = pink
                 
-            if((left_index[0] >= int(w*0.80) and left_index[0] <= int(w*0.84)) and (left_index[1] <= 100 and left_index[1] >= 20)):
+            if((current_point[0] >= int(w*0.80) and current_point[0] <= int(w*0.84)) and (current_point[1] <= 100 and current_point[1] >= 20)):
                 print("Brown")
                 cu_color = brown
 
-            if((left_index[0] >= int(w*0.90) and left_index[0] <= int(w*0.94)) and (left_index[1] <= 100 and left_index[1] >= 20)):
+            if((current_point[0] >= int(w*0.90) and current_point[0] <= int(w*0.94)) and (current_point[1] <= 100 and current_point[1] >= 20)):
                 print("Aqua")
                 cu_color = aqua
                 
-            if((left_index[0] >= int(w*0.95) and left_index[0] <= int(w*0.99)) and (left_index[1] <= 100 and left_index[1] >= 20)):
+            if((current_point[0] >= int(w*0.95) and current_point[0] <= int(w*0.99)) and (current_point[1] <= 100 and current_point[1] >= 20)):
                 print("Orange")
                 cu_color = orange
                 
@@ -178,28 +193,50 @@ while camara.isOpened():                            # Ciclo para examinar los fr
             match cu_shape:
                 case "line":
                     if last_point is not None:
-                        length = np.linalg.norm(np.array(left_index) - np.array(last_point))
-                        if length < max_length: cv2.line(lienzo, last_point, left_index , cu_color, size) 
+                        length = np.linalg.norm(np.array(current_point) - np.array(last_point))
+                        if length < max_length: cv2.line(lienzo, last_point, current_point , cu_color, size) 
                 
                 case "circle":
-                    cv2.circle(lienzo, left_index, size, cu_color, -1)
+                    cv2.circle(lienzo, current_point, size, cu_color, -1)
                     
                 case "rectangle":
-                    cv2.rectangle(lienzo, (int(left_index[0])-size, int(left_index[1])-size), (int(left_index[0])+size, int(left_index[1])+size), cu_color, -1)
+                    cv2.rectangle(lienzo, (int(current_point[0])-size, int(current_point[1])-size), (int(current_point[0])+size, int(current_point[1])+size), cu_color, -1)
                 
                 
-            last_point = left_index
+            last_point = current_point
         else: last_point = None
     
     if cu_mode == "figures":
-        print("hi")        
+        cv2.rectangle(frame, (bx_1,int(mid_y*.85)), (bx_2,int(mid_y*0.94)), cu_color, -1)          # Botón "+"
+        # cv2.putText(frame, "+", (bx_1,int(mid_y*.93)), cv2.FONT_HERSHEY_SIMPLEX, 2, (0,0,0), 3)
+
+        
+        cv2.rectangle(frame, (bx_1,int(mid_y*1.05)), (bx_2,int(mid_y*1.14)), (255,255,255), -1)         # Botón "-"
+        match cu_shape:
+            case "circle":
+                cv2.circle(frame, ((bx_2+bx_1)//2, int(mid_y*1.095)), int(h*0.018) , (0,0,0), -1)
+                
+            case "rectangle":
+                cv2.rectangle(frame, (int(bx_1*1.081),int(mid_y*1.066)), (int(bx_2*0.948),int(mid_y*1.1269)), (0,0,0), -1)
+            
+            case "line":
+                cv2.line(frame, (int(bx_1*1.07),int(mid_y*1.06)), (int(bx_2*0.94),int(mid_y*1.124)), (0,0,0), 5)        
+                    
+        
+        cv2.rectangle(frame, (bx_1,int(mid_y*1.25)), (bx_2,int(mid_y*1.34)), (255,255,255), -1)         # Boton "rectangulo"
+    
+        cv2.rectangle(frame, (bx_1,int(mid_y*1.45)), (bx_2,int(mid_y*1.54)), (255,255,255), -1)         # Botón "circulo"
+
+        cv2.rectangle(frame, (bx_1,int(mid_y*1.65)), (bx_2,int(mid_y*1.74)), (255,255,255), -1)         # Boton "linea"
     
     if(left_index != None and cooldown <= 0):
         if((left_index[0] >= int(w*0.425) and left_index[0] <= int(w*0.475)) and (left_index[1] >= 20 and left_index[1] <= 100) ):
             match cu_mode:
-                case "paint": cu_mode = mode_names[1]
+                case "paint": 
+                    cu_mode = mode_names[1]
+                    cu_shape = "line"
                 case "figures": cu_mode = mode_names[0]
-            cooldown = cooldown_frames
+            cooldown = mode_cooldown
                 
         if((left_index[0] >= int(w*0.525) and left_index[0] <= int(w*0.575)) and (left_index[1] >= 20 and left_index[1] <= 100) ):
             lienzo = np.zeros_like(frame)
