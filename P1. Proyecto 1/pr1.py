@@ -15,14 +15,6 @@ lienzo = np.zeros_like(frame)                       # Lienzo para colorear
 u_bajo = np.array([100, 50, 50])
 u_alto = np.array([130, 255, 255])
 
-
-mode_names = ("paint", "figures")
-
-cooldown = 0
-mode_cooldown = 30
-general_cooldown = 20
-
-
 # Declaracion de variables para los colores
 blue = (255,0,0) 
 green = (0,255,0)
@@ -34,7 +26,13 @@ brown = (28,44,82)
 aqua = (255,237,11)
 orange = (72,143,240)
 
-cu_color = green                                    # Color seleccionado
+mode_names = ("paint", "figures")
+colors = (blue, green, red, yellow, pink, brown, aqua, orange)
+color_index = 0
+shapes = ("line", "circle", "rectangle")
+shape_index = 0
+
+cu_color = colors[color_index]                      # Color seleccionado
 cu_shape = "line"                                   # Figura de la brocha
 cu_mode = mode_names[0]                             # Modo de paint o dibujo de primitivas
 size = 10                                           # Tamaño de la brocha                   
@@ -42,6 +40,10 @@ size = 10                                           # Tamaño de la brocha
 current_point = None
 last_point = None
 max_length = 50
+
+cooldown = 0
+mode_cooldown = 30
+general_cooldown = 15
 
 bx_1 = 100
 bx_2 = 150
@@ -145,49 +147,51 @@ while camara.isOpened():                            # Ciclo para examinar los fr
                 print("Menos")
             
             if((current_point[0] >= bx_1 and current_point[0] <= bx_2) and (current_point[1] >= int(mid_y*1.25) and current_point[1] <= (mid_y*1.34))):
-                cu_shape = "rectangle"
+                shape_index = 0
                 print("Rectangle")
                 
             if((current_point[0] >= bx_1 and current_point[0] <= bx_2) and (current_point[1] >= int(mid_y*1.45) and current_point[1] <= (mid_y*1.54))):
-                cu_shape = "circle"
+                shape_index = 1
                 print("Circle")
                 
             if((current_point[0] >= bx_1 and current_point[0] <= bx_2) and (current_point[1] >= int(mid_y*1.65) and current_point[1] <= (mid_y*1.74))):
-                cu_shape = "line"
+                shape_index = 2
                 print("Line")
             
             if((current_point[0] >= int(w*0.01) and current_point[0] <= int(w*0.05)) and (current_point[1] <= 100 and current_point[1] >= 20)):
                 print("Blue")
-                cu_color = blue
+                color_index = 0
             
             if((current_point[0] >= int(w*0.06) and current_point[0] <= int(w*0.10)) and (current_point[1] <= 100 and current_point[1] >= 20)):
                 print("Green")
-                cu_color = green
+                color_index = 1
                 
             if((current_point[0] >= int(w*0.11) and current_point[0] <= int(w*0.15)) and (current_point[1] <= 100 and current_point[1] >= 20)):
                 print("Red")
-                cu_color = red
+                color_index = 2
                 
             if((current_point[0] >= int(w*0.16) and current_point[0] <= int(w*0.20)) and (current_point[1] <= 100 and current_point[1] >= 20)):
                 print("Yellow")
-                cu_color = yellow
+                color_index = 3
             
             if((current_point[0] >= int(w*0.85) and current_point[0] <= int(w*0.89)) and (current_point[1] <= 100 and current_point[1] >= 20)):
                 print("Pink")
-                cu_color = pink
+                color_index = 4
                 
             if((current_point[0] >= int(w*0.80) and current_point[0] <= int(w*0.84)) and (current_point[1] <= 100 and current_point[1] >= 20)):
                 print("Brown")
-                cu_color = brown
+                color_index = 5
 
             if((current_point[0] >= int(w*0.90) and current_point[0] <= int(w*0.94)) and (current_point[1] <= 100 and current_point[1] >= 20)):
                 print("Aqua")
-                cu_color = aqua
+                color_index = 6
                 
             if((current_point[0] >= int(w*0.95) and current_point[0] <= int(w*0.99)) and (current_point[1] <= 100 and current_point[1] >= 20)):
                 print("Orange")
-                cu_color = orange
-                
+                color_index = 7
+            
+            cu_color = colors[color_index]
+            cu_shape = shapes[shape_index]    
             
             
             match cu_shape:
@@ -207,11 +211,10 @@ while camara.isOpened():                            # Ciclo para examinar los fr
         else: last_point = None
     
     if cu_mode == "figures":
-        cv2.rectangle(frame, (bx_1,int(mid_y*.85)), (bx_2,int(mid_y*0.94)), cu_color, -1)          # Botón "+"
-        # cv2.putText(frame, "+", (bx_1,int(mid_y*.93)), cv2.FONT_HERSHEY_SIMPLEX, 2, (0,0,0), 3)
+        cv2.rectangle(frame, (bx_1,int(mid_y*.85)), (bx_2,int(mid_y*0.94)), cu_color, -1)          
 
         
-        cv2.rectangle(frame, (bx_1,int(mid_y*1.05)), (bx_2,int(mid_y*1.14)), (255,255,255), -1)         # Botón "-"
+        cv2.rectangle(frame, (bx_1,int(mid_y*1.05)), (bx_2,int(mid_y*1.14)), (255,255,255), -1)         
         match cu_shape:
             case "circle":
                 cv2.circle(frame, ((bx_2+bx_1)//2, int(mid_y*1.095)), int(h*0.018) , (0,0,0), -1)
@@ -223,11 +226,31 @@ while camara.isOpened():                            # Ciclo para examinar los fr
                 cv2.line(frame, (int(bx_1*1.07),int(mid_y*1.06)), (int(bx_2*0.94),int(mid_y*1.124)), (0,0,0), 5)        
                     
         
-        cv2.rectangle(frame, (bx_1,int(mid_y*1.25)), (bx_2,int(mid_y*1.34)), (255,255,255), -1)         # Boton "rectangulo"
-    
-        cv2.rectangle(frame, (bx_1,int(mid_y*1.45)), (bx_2,int(mid_y*1.54)), (255,255,255), -1)         # Botón "circulo"
-
-        cv2.rectangle(frame, (bx_1,int(mid_y*1.65)), (bx_2,int(mid_y*1.74)), (255,255,255), -1)         # Boton "linea"
+        # print(cooldown)
+        
+        if left_index != None:
+            if((left_index[0] >= bx_1 and left_index[0] <= bx_2) and (left_index[1] >= int(mid_y*.85) and left_index[1] <= (mid_y*0.94)) and cooldown <= 0):
+                # print("COLOR")
+                # print(color_index)
+                if(color_index < 7): color_index = color_index + 1
+                else:                color_index = 0     
+                cu_color = colors[color_index]
+                cooldown = general_cooldown        
+                        
+                
+            
+            if((left_index[0] >= bx_1 and left_index[0] <= bx_2) and (left_index[1] >= int(mid_y*1.05) and left_index[1] <= (mid_y*1.14)) and cooldown <= 0):
+                # print("SHAPE")
+                # print(shape_index)
+                if(shape_index < 2): shape_index = shape_index + 1
+                else:                shape_index = 0
+                cu_shape = shapes[shape_index]
+                cooldown = general_cooldown        
+                
+                
+        
+        
+        
     
     if(left_index != None and cooldown <= 0):
         if((left_index[0] >= int(w*0.425) and left_index[0] <= int(w*0.475)) and (left_index[1] >= 20 and left_index[1] <= 100) ):
