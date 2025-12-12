@@ -1,6 +1,7 @@
 import cv2 as cv
 import mediapipe as mp
 import numpy as np
+import math
 
 mp_hands = mp.solutions.hands
 mp_drawing = mp.solutions.drawing_utils
@@ -30,9 +31,9 @@ mode_names = ("paint", "figures")
 colors = (blue, green, red, yellow, pink, brown, aqua, orange)
 color_index = 0
 shapes = ("line", "circle", "rectangle")
-shape_index = 0
+shape_index = 2
 editor_mode = ("nothing","waiting","adding","move", "scale", "rotate")
-editor_index = 0
+editor_index = 2
 
 cu_mode = mode_names[1]                             # Modo de paint o dibujo de primitivas
 cu_color = colors[color_index]                      # Color seleccionado
@@ -43,11 +44,21 @@ size = 10                                           # Tamaño de la brocha
 
 current_point = None
 last_point = None
+center_point = None
+rectangle = None
 max_length = 50
+
+px_diff = None
+rotation = 0
+temp_rotation = 0
+
+new_point1 = None
+new_point2 = None
 
 cooldown = 0
 mode_cooldown = 30
 general_cooldown = 15
+insert_cooldown = 5
 
 bx_1 = 100
 bx_2 = 150
@@ -61,6 +72,7 @@ while camara.isOpened():                            # Ciclo para examinar los fr
     h, w, = 1200, 1920
     
     mid_y = h // 2
+    mid_x = w // 2
     # Obtener la anchura y altura del frame
     
     if not ret: break
@@ -271,9 +283,11 @@ while camara.isOpened():                            # Ciclo para examinar los fr
         
         
         # Teclas para modo Figures:
+        # N == "NADA"
+        # W == "ESPERA"
         # A == "AGREGAR"
-        # R == "ROTAR"
         # T == "MOVER"
+        # R == "ROTAR"
         # S == "ESCALAR"
         # E == "TERMINAR"
         
@@ -284,84 +298,201 @@ while camara.isOpened():                            # Ciclo para examinar los fr
                 current_point = None
             elif editor_index == 2: editor_index = 1
         elif tecla == ord('t'):     
-            if editor_index == 1:   editor_index = 2
-        elif tecla == ord('s'):     
             if editor_index == 1:   editor_index = 3
-        elif tecla == ord('r'):     
+        elif tecla == ord('s'):     
             if editor_index == 1:   editor_index = 4
+        elif tecla == ord('r'):     
+            if editor_index == 1:   editor_index = 5
         elif tecla == ord('q'):     break
-
-        
-        cu_editor_mode = editor_mode[editor_index]
         
         
-        if cu_editor_mode == "adding":
-            if left_index != None: 
-                match cu_shape:
-                    case "line":
-                        if last_point != None:
-                            cv.line(frame, left_index, last_point, cu_color, 5)
-                            
-                        if last_point == None and tecla == ord('e'):
-                            last_point = left_index
-                            
-                        elif last_point != None and tecla == ord('e'):
-                            current_point = left_index
-                            cv.line(frame, current_point, last_point, cu_color, 5)
-                            editor_index = 1
-                        
-                    case "circle":
-                        cv.circle(frame, left_index, figure_size, cu_color, -1)
-                        if tecla == ord('e'):
-                            last_point = left_index
-                            cv.circle(frame, last_point, figure_size, cu_color, -1)
-                            editor_index = 1
-                    
-                    case "rectangle":
-                        if last_point != None:
-                            cv.rectangle(frame, left_index, last_point, cu_color, -1)
-                        
-                        if last_point == None and tecla == ord('e'):
-                            last_point = left_index
-                        
-                        if last_point != None and tecla == ord('e'):
-                            current_point = left_index
-                            cv.rectangle(frame, current_point, last_point, cu_color, -1)
-                            editor_index = 1
-            
-            if tecla == ord('e'):
-                editor_index = 1     
-        
+        # E S P E R A N D O
         if cu_editor_mode == "waiting":
             
             if tecla == ord('e'):
                 match cu_shape:
                     case "line":
-                        cv.line(lienzo, current_point, last_point, cu_color, 5 )
-                        last_point = None
-                        current_point = None
-                        editor_index = 0
+                        cv.line(lienzo, last_point, current_point, cu_color, 5 )
+                        
                     case "circle":
-                        cv.circle(lienzo, last_point, figure_size, cu_color, -1)
-                        last_point = None
-                        current_point = None
-                        editor_index = 0
-                    
+                        cv.circle(lienzo, last_point, figure_size, cu_color, 3)
+                        
                     case "rectangle":
-                        cv.rectangle(lienzo, current_point, last_point, cu_color, -1)
-                        last_point = None
-                        current_point = None
-                        editor_index = 0
+                        cv.drawContours(lienzo, [rectangle], 0, cu_color, 2)
+                    
+                last_point = None
+                current_point = None
+                center_point = None
+                figure_size = 10
+                rectangle = None
+                editor_index = 0
+                rotation = 0
             
             else:
                 match cu_shape:
                     case "line":
-                        cv.line(frame, current_point, last_point, cu_color, 5 )
+                        cv.line(frame, last_point, current_point, cu_color, 5 )
+                        
                     case "circle":
-                        cv.circle(frame, last_point, figure_size, cu_color, -1)
+                        cv.circle(frame, last_point, figure_size, cu_color, 2)
+                        
                     case "rectangle":
-                        cv.rectangle(frame, current_point, last_point, cu_color, -1)
-                                        
+                        cv.drawContours(frame, [rectangle], 0, cu_color, 2)
+                        # cv.rectangle(frame, last_point, current_point, cu_color, 2)
+        
+        
+        # P U N T O S
+        if cu_editor_mode == "adding":
+            if left_index != None: 
+                match cu_shape:
+                    case "line":
+                        if last_point != None:
+                            cv.line(frame, last_point, left_index, cu_color, 3)
+                            
+                        if last_point == None and tecla == ord('e'):
+                            last_point = left_index
+                            cooldown = insert_cooldown
+                            print("Primer punto")
+                            
+                        elif last_point != None and tecla == ord('e') and cooldown <= 0:
+                            current_point = left_index
+                            cv.line(frame, last_point, current_point, cu_color, 3)
+                            editor_index = 1
+                        
+                    case "circle":
+                        cv.circle(frame, left_index, figure_size, cu_color, 3)
+                        if tecla == ord('e'):
+                            last_point = left_index
+                            cv.circle(frame, last_point, figure_size, cu_color, 3)
+                            editor_index = 1
+                    
+                    case "rectangle":
+                        if last_point != None:
+                            cv.rectangle(frame, last_point, left_index, cu_color, 2)
+                        
+                        if last_point == None and tecla == ord('e'):
+                            last_point = left_index
+                            cooldown = insert_cooldown
+                            print("Primer punto")
+
+                        
+                        if last_point != None and tecla == ord('e') and cooldown <= 0:
+                            current_point = left_index
+                            
+                            center_point = ((last_point[0] + current_point[0]) // 2,(last_point[1] + current_point[1]) // 2)
+                            
+                            figure_size = last_point[0] - center_point[0]
+                            
+                            aux = ((center_point[0], center_point[1]), (figure_size*2, figure_size), rotation)
+                            
+                            rectangle = cv.boxPoints(aux)
+                            rectangle = np.int0(rectangle)
+                            
+                            cv.drawContours(frame, [rectangle], 0, cu_color, 2)
+                            # cv.rectangle(frame, last_point, current_point, cu_color, 2)
+                            editor_index = 1
+            
+            if left_index == None and tecla == ord('e'):
+                editor_index = 1
+        
+        
+        # M O V E R
+        if cu_editor_mode == "move":
+            if left_index != None:
+                match cu_shape:
+                    case "line":
+                        px_diff =  (last_point[0] - left_index[0], last_point[1] - left_index[1])
+                
+                        if last_point != None:
+                            new_point1 = ((last_point[0] - px_diff[0]),(last_point[1] - px_diff[1]))
+                        
+                        if current_point != None:
+                            new_point2 = ((current_point[0] - px_diff[0]),(current_point[1] - px_diff[1]))
+    
+                        cv.line(frame, new_point1, new_point2, cu_color, 5 )
+                        
+                    case "circle":
+                        cv.circle(frame, left_index, figure_size, cu_color, -1)
+                        
+                    case "rectangle":
+                        px_diff = ((center_point[0] - left_index[0]),(center_point[1] - left_index[1]))
+                        
+                        new_point1 = ((center_point[0] - px_diff[0]),(center_point[1] - px_diff[1]))
+                        
+                        aux = ((new_point1[0], new_point1[1]), (figure_size*2, figure_size), rotation)
+                        
+                        rectangle = cv.boxPoints(aux)
+                        rectangle = np.int0(rectangle)
+                            
+                        cv.drawContours(frame, [rectangle], 0, cu_color, 2)
+                
+                if tecla == ord('e'):
+                    match cu_shape:
+                        case "line":
+                            last_point = new_point1
+                            current_point = new_point2
+                            
+                        case "circle":
+                            last_point = new_point1
+                            
+                        case "rectangle":
+                            center_point = new_point1
+                            
+                    editor_index = 1
+                    px_diff = None
+                    new_point1 = None
+                    new_point2 = None
+            
+            if left_index == None and tecla == ord('e'):
+                editor_index = 1  
+        
+        
+        # R O T A R
+        if cu_editor_mode == "rotate":
+            if left_index != None:
+                co = left_index[0] - center_point[0]
+                ca = left_index[1] - center_point[1]
+                 
+                temp_rotation = math.degrees(math.atan2(ca,co))
+                
+                match cu_shape:
+                    case "line":
+                        cv.line(frame, new_point1, new_point2, cu_color, 5 )
+                        
+                    case "rectangle":
+                        aux = ((center_point[0], center_point[1]), (figure_size*2, figure_size), temp_rotation)
+                            
+                        rectangle = cv.boxPoints(aux)
+                        rectangle = np.int0(rectangle)
+                            
+                        cv.drawContours(frame, [rectangle], 0, cu_color, 2)
+                
+                if tecla == ord('e'):
+                    match cu_shape:
+                        case "line":
+                            last_point = new_point1
+                            current_point = new_point2
+                        case "rectangle":
+                            rotation = temp_rotation
+                    editor_index = 1
+                    temp_rotation = None
+                    new_point1 = None
+                    new_point2 = None
+                     
+            
+            if left_index == None and tecla == ord('e'):
+                editor_index = 1
+             
+             
+        # E S C A L A R                
+        if cu_editor_mode == "scale":
+            if left_index != None:
+                print("Wish You Were") 
+            
+            if left_index == None and tecla == ord('e'):
+                editor_index = 1        
+        
+        
 
         
         cu_editor_mode = editor_mode[editor_index]
