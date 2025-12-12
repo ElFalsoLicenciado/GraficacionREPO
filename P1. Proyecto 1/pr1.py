@@ -31,13 +31,14 @@ colors = (blue, green, red, yellow, pink, brown, aqua, orange)
 color_index = 0
 shapes = ("line", "circle", "rectangle")
 shape_index = 0
-editor_mode = ("waiting","adding","move", "scale", "rotate", "finish")
+editor_mode = ("nothing","waiting","adding","move", "scale", "rotate")
 editor_index = 0
 
-cu_mode = mode_names[0]                             # Modo de paint o dibujo de primitivas
+cu_mode = mode_names[1]                             # Modo de paint o dibujo de primitivas
 cu_color = colors[color_index]                      # Color seleccionado
 cu_shape = shapes[shape_index]                      # Figura de la brocha
 cu_editor_mode = editor_mode[editor_index]          # Configuracion al colocarl primitivas
+figure_size = 10
 size = 10                                           # Tamaño de la brocha                   
 
 current_point = None
@@ -50,13 +51,17 @@ general_cooldown = 15
 
 bx_1 = 100
 bx_2 = 150
+aux = ""
 
 
 while camara.isOpened():                            # Ciclo para examinar los frames
     
     ret, frame = camara.read()                      # Obtener el fotograma
     
-    h, w, = 1200, 1920                              # Obtener la anchura y altura del frame
+    h, w, = 1200, 1920
+    
+    mid_y = h // 2
+    # Obtener la anchura y altura del frame
     
     if not ret: break
     
@@ -109,8 +114,6 @@ while camara.isOpened():                            # Ciclo para examinar los fr
         cv.rectangle(frame, (int(w*0.90),20), (int(w*0.94),100), aqua, -1)                             # Aqua
         cv.rectangle(frame, (int(w*0.95),20), (int(w*0.99),100), orange, -1)                           # Naranja
         
-        mid_y = h // 2
-
 
         cv.rectangle(frame, (bx_1,int(mid_y*.85)), (bx_2,int(mid_y*0.94)), (255,255,255), -1)          # Botón "+"
         cv.putText(frame, "+", (bx_1,int(mid_y*.93)), cv.FONT_HERSHEY_SIMPLEX, 2, (0,0,0), 3)
@@ -227,12 +230,23 @@ while camara.isOpened():                            # Ciclo para examinar los fr
             
             case "line":
                 cv.line(frame, (int(bx_1*1.07),int(mid_y*1.06)), (int(bx_2*0.94),int(mid_y*1.124)), (0,0,0), 5)        
-                    
+        
+        cv.rectangle(frame, (bx_1,int(mid_y*1.25)), (bx_2,int(mid_y*1.34)), (255,255,255), -1)
+        
+        match cu_editor_mode:
+            case "nothing":     aux = "N"
+            case "adding":      aux = "A"
+            case "waiting":     aux = "W"
+            case "move":        aux = "M"
+            case "scale":       aux = "S"
+            case "rotate":      aux = "R"
+        
+        cv.putText(frame, aux, (bx_1, int(mid_y*1.3299)), cv.FONT_HERSHEY_SIMPLEX, 2, (0,0,0), 3)            
         
         # print(cooldown)
         
-        if left_index != None:
-            if((left_index[0] >= bx_1 and left_index[0] <= bx_2) and (left_index[1] >= int(mid_y*.85) and left_index[1] <= (mid_y*0.94)) and cooldown <= 0):
+        if left_index != None and (cooldown <= 0):
+            if((left_index[0] >= bx_1 and left_index[0] <= bx_2) and (left_index[1] >= int(mid_y*.85) and left_index[1] <= (mid_y*0.94))):
                 # print("COLOR")
                 # print(color_index)
                 if(color_index < 7): color_index = color_index + 1
@@ -242,13 +256,16 @@ while camara.isOpened():                            # Ciclo para examinar los fr
                         
                 
             
-            if((left_index[0] >= bx_1 and left_index[0] <= bx_2) and (left_index[1] >= int(mid_y*1.05) and left_index[1] <= (mid_y*1.14)) and cooldown <= 0):
+            if((left_index[0] >= bx_1 and left_index[0] <= bx_2) and (left_index[1] >= int(mid_y*1.05) and left_index[1] <= (mid_y*1.14)) and (cu_editor_mode == "nothing" or cu_editor_mode == "waiting")):
                 # print("SHAPE")
                 # print(shape_index)
                 if(shape_index < 2): shape_index = shape_index + 1
                 else:                shape_index = 0
                 cu_shape = shapes[shape_index]
                 cooldown = general_cooldown
+                last_point = None
+                current_point = None
+        
         
         tecla = cv.waitKey(1) & 0xFF
         
@@ -260,15 +277,94 @@ while camara.isOpened():                            # Ciclo para examinar los fr
         # S == "ESCALAR"
         # E == "TERMINAR"
         
+        if tecla == ord('a'):       
+            if editor_index == 0 or editor_index == 1:   
+                editor_index = 2
+                last_point = None
+                current_point = None
+            elif editor_index == 2: editor_index = 1
+        elif tecla == ord('t'):     
+            if editor_index == 1:   editor_index = 2
+        elif tecla == ord('s'):     
+            if editor_index == 1:   editor_index = 3
+        elif tecla == ord('r'):     
+            if editor_index == 1:   editor_index = 4
+        elif tecla == ord('q'):     break
+
         
+        cu_editor_mode = editor_mode[editor_index]
+        
+        
+        if cu_editor_mode == "adding":
+            if left_index != None: 
+                match cu_shape:
+                    case "line":
+                        if last_point != None:
+                            cv.line(frame, left_index, last_point, cu_color, 5)
+                            
+                        if last_point == None and tecla == ord('e'):
+                            last_point = left_index
+                            
+                        elif last_point != None and tecla == ord('e'):
+                            current_point = left_index
+                            cv.line(frame, current_point, last_point, cu_color, 5)
+                            editor_index = 1
+                        
+                    case "circle":
+                        cv.circle(frame, left_index, figure_size, cu_color, -1)
+                        if tecla == ord('e'):
+                            last_point = left_index
+                            cv.circle(frame, last_point, figure_size, cu_color, -1)
+                            editor_index = 1
+                    
+                    case "rectangle":
+                        if last_point != None:
+                            cv.rectangle(frame, left_index, last_point, cu_color, -1)
+                        
+                        if last_point == None and tecla == ord('e'):
+                            last_point = left_index
+                        
+                        if last_point != None and tecla == ord('e'):
+                            current_point = left_index
+                            cv.rectangle(frame, current_point, last_point, cu_color, -1)
+                            editor_index = 1
+            
+            if tecla == ord('e'):
+                editor_index = 1     
         
         if cu_editor_mode == "waiting":
             
+            if tecla == ord('e'):
+                match cu_shape:
+                    case "line":
+                        cv.line(lienzo, current_point, last_point, cu_color, 5 )
+                        last_point = None
+                        current_point = None
+                        editor_index = 0
+                    case "circle":
+                        cv.circle(lienzo, last_point, figure_size, cu_color, -1)
+                        last_point = None
+                        current_point = None
+                        editor_index = 0
                     
-                
-                
+                    case "rectangle":
+                        cv.rectangle(lienzo, current_point, last_point, cu_color, -1)
+                        last_point = None
+                        current_point = None
+                        editor_index = 0
+            
+            else:
+                match cu_shape:
+                    case "line":
+                        cv.line(frame, current_point, last_point, cu_color, 5 )
+                    case "circle":
+                        cv.circle(frame, last_point, figure_size, cu_color, -1)
+                    case "rectangle":
+                        cv.rectangle(frame, current_point, last_point, cu_color, -1)
+                                        
+
         
-        
+        cu_editor_mode = editor_mode[editor_index]
         
     
     if(left_index != None and cooldown <= 0):
@@ -276,8 +372,13 @@ while camara.isOpened():                            # Ciclo para examinar los fr
             match cu_mode:
                 case "paint": 
                     cu_mode = mode_names[1]
-                    cu_shape = "line"
-                case "figures": cu_mode = mode_names[0]
+                    last_point = None
+                    current_point = None
+                case "figures": 
+                    cu_mode = mode_names[0]
+                    last_point = None
+                    current_point = None
+
             cooldown = mode_cooldown
                 
         if((left_index[0] >= int(w*0.525) and left_index[0] <= int(w*0.575)) and (left_index[1] >= 20 and left_index[1] <= 100) ):
