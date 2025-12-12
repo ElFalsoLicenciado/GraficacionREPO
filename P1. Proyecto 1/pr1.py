@@ -31,7 +31,7 @@ mode_names = ("paint", "figures")
 colors = (blue, green, red, yellow, pink, brown, aqua, orange)
 color_index = 0
 shapes = ("line", "circle", "rectangle")
-shape_index = 2
+shape_index = 1
 editor_mode = ("nothing","waiting","adding","move", "scale", "rotate")
 editor_index = 2
 
@@ -51,6 +51,7 @@ max_length = 50
 px_diff = None
 rotation = 0
 temp_rotation = 0
+temp_figure_size = None
 
 new_point1 = None
 new_point2 = None
@@ -352,10 +353,12 @@ while camara.isOpened():                            # Ciclo para examinar los fr
                         if last_point == None and tecla == ord('e'):
                             last_point = left_index
                             cooldown = insert_cooldown
-                            print("Primer punto")
                             
                         elif last_point != None and tecla == ord('e') and cooldown <= 0:
                             current_point = left_index
+                            
+                            center_point = ((last_point[0] + current_point[0]) // 2,(last_point[1] + current_point[1]) // 2)
+                            
                             cv.line(frame, last_point, current_point, cu_color, 3)
                             editor_index = 1
                         
@@ -363,6 +366,9 @@ while camara.isOpened():                            # Ciclo para examinar los fr
                         cv.circle(frame, left_index, figure_size, cu_color, 3)
                         if tecla == ord('e'):
                             last_point = left_index
+                            
+                            center_point = left_index
+                            
                             cv.circle(frame, last_point, figure_size, cu_color, 3)
                             editor_index = 1
                     
@@ -373,7 +379,6 @@ while camara.isOpened():                            # Ciclo para examinar los fr
                         if last_point == None and tecla == ord('e'):
                             last_point = left_index
                             cooldown = insert_cooldown
-                            print("Primer punto")
 
                         
                         if last_point != None and tecla == ord('e') and cooldown <= 0:
@@ -412,7 +417,7 @@ while camara.isOpened():                            # Ciclo para examinar los fr
                         cv.line(frame, new_point1, new_point2, cu_color, 5 )
                         
                     case "circle":
-                        cv.circle(frame, left_index, figure_size, cu_color, -1)
+                        cv.circle(frame, left_index, figure_size, cu_color, 2)
                         
                     case "rectangle":
                         px_diff = ((center_point[0] - left_index[0]),(center_point[1] - left_index[1]))
@@ -431,9 +436,11 @@ while camara.isOpened():                            # Ciclo para examinar los fr
                         case "line":
                             last_point = new_point1
                             current_point = new_point2
+                            center_point = ((last_point[0] + current_point[0]) // 2,(last_point[1] + current_point[1]) // 2)
                             
                         case "circle":
-                            last_point = new_point1
+                            last_point = left_index
+                            center_point = left_index
                             
                         case "rectangle":
                             center_point = new_point1
@@ -449,7 +456,11 @@ while camara.isOpened():                            # Ciclo para examinar los fr
         
         # R O T A R
         if cu_editor_mode == "rotate":
-            if left_index != None:
+            if cu_shape == "circle": 
+                editor_index = 1
+            
+            elif left_index != None:
+                                
                 co = left_index[0] - center_point[0]
                 ca = left_index[1] - center_point[1]
                  
@@ -457,6 +468,25 @@ while camara.isOpened():                            # Ciclo para examinar los fr
                 
                 match cu_shape:
                     case "line":
+                        line_slide = ((current_point[0]-last_point[0]), (current_point[1]-last_point[1]))
+                        line_angle = math.atan2(line_slide[1], line_slide[0])
+                        radians = math.atan2(ca,co)
+                        
+                        delta = radians - line_angle 
+                        
+                        cos_a = math.cos(delta)
+                        sin_a = math.sin(delta)
+                        
+                        dx1 = last_point[0] - center_point[0]
+                        dy1 = last_point[1] - center_point[1]
+                        
+                        dx2 = current_point[0] - center_point[0]
+                        dy2 = current_point[1] - center_point[1]
+                        
+                        new_point1 = (int(dx1 * cos_a - dy1 * sin_a + center_point[0] ), int(dx1 * sin_a + dy1 * cos_a + center_point[1] ))
+                        
+                        new_point2 = (int(dx2 * cos_a - dy2 * sin_a + center_point[0] ), int(dx2 * sin_a + dy2 * cos_a + center_point[1] ))
+                        
                         cv.line(frame, new_point1, new_point2, cu_color, 5 )
                         
                     case "rectangle":
@@ -480,16 +510,40 @@ while camara.isOpened():                            # Ciclo para examinar los fr
                     new_point2 = None
                      
             
-            if left_index == None and tecla == ord('e'):
+            elif left_index == None and tecla == ord('e'):
                 editor_index = 1
              
              
         # E S C A L A R                
         if cu_editor_mode == "scale":
-            if left_index != None:
-                print("Wish You Were") 
+            if cu_shape == "line":
+                editor_index = 1
             
-            if left_index == None and tecla == ord('e'):
+            elif left_index != None:
+                temp_figure_size = abs(left_index[0] - center_point[0])
+                print(temp_figure_size)
+                
+                if(temp_figure_size == 0): temp_figure_size = 1
+                
+                match cu_shape:
+                    case "circle":
+                        cv.circle(frame, last_point, temp_figure_size, cu_color, 2)
+                        
+                    case "rectangle":
+                        aux = ((center_point[0], center_point[1]), (temp_figure_size*2, temp_figure_size), rotation)
+                        
+                        rectangle = cv.boxPoints(aux)
+                        rectangle = np.int0(rectangle)
+                        
+                        cv.drawContours(frame, [rectangle], 0, cu_color, 2)
+                
+                if tecla == ord('e'):
+                    figure_size = temp_figure_size
+                    editor_index = 1
+                    temp_figure_size = None    
+                            
+            
+            elif left_index == None and tecla == ord('e'):
                 editor_index = 1        
         
         
@@ -498,7 +552,7 @@ while camara.isOpened():                            # Ciclo para examinar los fr
         cu_editor_mode = editor_mode[editor_index]
         
     
-    if(left_index != None and cooldown <= 0):
+    if(left_index != None and cooldown <= 0 and cu_mode == 0):
         if((left_index[0] >= int(w*0.425) and left_index[0] <= int(w*0.475)) and (left_index[1] >= 20 and left_index[1] <= 100) ):
             match cu_mode:
                 case "paint": 
