@@ -155,57 +155,58 @@ while camara.isOpened():                            # Ciclo para examinar los fr
             current_point = (cx, cy)    
         
         
-        if current_point != None:
+        if current_point is not None:
             
-            if((current_point[0] >= bx_1 and current_point[0] <= bx_2) and (current_point[1] >= int(mid_y*.85) and current_point[1] <= (mid_y*0.94) and size <= 800)):
+            if (bx_1 <= current_point[0] <= bx_2) and (int(mid_y * .85) <= current_point[1] <= (mid_y * 0.94) and size <= 800):
                 size+=2
                 print("Mas")
             
-            if((current_point[0] >= bx_1 and current_point[0] <= bx_2) and (current_point[1] >= int(mid_y*1.05) and current_point[1] <= (mid_y*1.14) and size >= 10)):
+            if (bx_1 <= current_point[0] <= bx_2) and (
+                    int(mid_y * 1.05) <= current_point[1] <= (mid_y * 1.14) and size >= 10):
                 size-=2
                 print("Menos")
             
-            if((current_point[0] >= bx_1 and current_point[0] <= bx_2) and (current_point[1] >= int(mid_y*1.25) and current_point[1] <= (mid_y*1.34))):
+            if (bx_1 <= current_point[0] <= bx_2) and (int(mid_y * 1.25) <= current_point[1] <= (mid_y * 1.34)):
                 shape_index = 0
                 print("Rectangle")
                 
-            if((current_point[0] >= bx_1 and current_point[0] <= bx_2) and (current_point[1] >= int(mid_y*1.45) and current_point[1] <= (mid_y*1.54))):
+            if (bx_1 <= current_point[0] <= bx_2) and (int(mid_y * 1.45) <= current_point[1] <= (mid_y * 1.54)):
                 shape_index = 1
                 print("Circle")
                 
-            if((current_point[0] >= bx_1 and current_point[0] <= bx_2) and (current_point[1] >= int(mid_y*1.65) and current_point[1] <= (mid_y*1.74))):
+            if (bx_1 <= current_point[0] <= bx_2) and (int(mid_y * 1.65) <= current_point[1] <= (mid_y * 1.74)):
                 shape_index = 2
                 print("Line")
             
-            if((current_point[0] >= int(w*0.01) and current_point[0] <= int(w*0.05)) and (current_point[1] <= 100 and current_point[1] >= 20)):
+            if (int(w * 0.01) <= current_point[0] <= int(w * 0.05)) and (100 >= current_point[1] >= 20):
                 print("Blue")
                 color_index = 0
             
-            if((current_point[0] >= int(w*0.06) and current_point[0] <= int(w*0.10)) and (current_point[1] <= 100 and current_point[1] >= 20)):
+            if (int(w * 0.06) <= current_point[0] <= int(w * 0.10)) and (100 >= current_point[1] >= 20):
                 print("Green")
                 color_index = 1
                 
-            if((current_point[0] >= int(w*0.11) and current_point[0] <= int(w*0.15)) and (current_point[1] <= 100 and current_point[1] >= 20)):
+            if (int(w * 0.11) <= current_point[0] <= int(w * 0.15)) and (100 >= current_point[1] >= 20):
                 print("Red")
                 color_index = 2
                 
-            if((current_point[0] >= int(w*0.16) and current_point[0] <= int(w*0.20)) and (current_point[1] <= 100 and current_point[1] >= 20)):
+            if (int(w * 0.16) <= current_point[0] <= int(w * 0.20)) and (100 >= current_point[1] >= 20):
                 print("Yellow")
                 color_index = 3
             
-            if((current_point[0] >= int(w*0.85) and current_point[0] <= int(w*0.89)) and (current_point[1] <= 100 and current_point[1] >= 20)):
+            if (int(w * 0.85) <= current_point[0] <= int(w * 0.89)) and (100 >= current_point[1] >= 20):
                 print("Pink")
                 color_index = 4
                 
-            if((current_point[0] >= int(w*0.80) and current_point[0] <= int(w*0.84)) and (current_point[1] <= 100 and current_point[1] >= 20)):
+            if (int(w * 0.80) <= current_point[0] <= int(w * 0.84)) and (100 >= current_point[1] >= 20):
                 print("Brown")
                 color_index = 5
 
-            if((current_point[0] >= int(w*0.90) and current_point[0] <= int(w*0.94)) and (current_point[1] <= 100 and current_point[1] >= 20)):
+            if (int(w * 0.90) <= current_point[0] <= int(w * 0.94)) and (100 >= current_point[1] >= 20):
                 print("Aqua")
                 color_index = 6
                 
-            if((current_point[0] >= int(w*0.95) and current_point[0] <= int(w*0.99)) and (current_point[1] <= 100 and current_point[1] >= 20)):
+            if (int(w * 0.95) <= current_point[0] <= int(w * 0.99)) and (100 >= current_point[1] >= 20):
                 print("Orange")
                 color_index = 7
             
@@ -258,21 +259,21 @@ while camara.isOpened():                            # Ciclo para examinar los fr
         
         # print(cooldown)
         
-        if left_index != None and (cooldown <= 0):
-            if((left_index[0] >= bx_1 and left_index[0] <= bx_2) and (left_index[1] >= int(mid_y*.85) and left_index[1] <= (mid_y*0.94))):
+        if left_index is not None and (cooldown <= 0):
+            if (bx_1 <= left_index[0] <= bx_2) and (int(mid_y * .85) <= left_index[1] <= (mid_y * 0.94)):
                 # print("COLOR")
                 # print(color_index)
-                if(color_index < 7): color_index = color_index + 1
+                if color_index < 7: color_index = color_index + 1
                 else:                color_index = 0     
                 cu_color = colors[color_index]
                 cooldown = general_cooldown        
                         
                 
             
-            if((left_index[0] >= bx_1 and left_index[0] <= bx_2) and (left_index[1] >= int(mid_y*1.05) and left_index[1] <= (mid_y*1.14)) and (cu_editor_mode == "nothing" or cu_editor_mode == "waiting")):
+            if (bx_1 <= left_index[0] <= bx_2) and (int(mid_y * 1.05) <= left_index[1] <= (mid_y * 1.14)) and (cu_editor_mode == "nothing" or cu_editor_mode == "waiting"):
                 # print("SHAPE")
                 # print(shape_index)
-                if(shape_index < 2): shape_index = shape_index + 1
+                if shape_index < 2: shape_index = shape_index + 1
                 else:                shape_index = 0
                 cu_shape = shapes[shape_index]
                 cooldown = general_cooldown
@@ -344,17 +345,17 @@ while camara.isOpened():                            # Ciclo para examinar los fr
         
         # P U N T O S
         if cu_editor_mode == "adding":
-            if left_index != None: 
+            if left_index is not None:
                 match cu_shape:
                     case "line":
-                        if last_point != None:
+                        if last_point is not None:
                             cv.line(frame, last_point, left_index, cu_color, 3)
                             
-                        if last_point == None and tecla == ord('e'):
+                        if last_point is None and tecla == ord('e'):
                             last_point = left_index
                             cooldown = insert_cooldown
                             
-                        elif last_point != None and tecla == ord('e') and cooldown <= 0:
+                        elif last_point is not None and tecla == ord('e') and cooldown <= 0:
                             current_point = left_index
                             
                             center_point = ((last_point[0] + current_point[0]) // 2,(last_point[1] + current_point[1]) // 2)
@@ -373,15 +374,15 @@ while camara.isOpened():                            # Ciclo para examinar los fr
                             editor_index = 1
                     
                     case "rectangle":
-                        if last_point != None:
+                        if last_point is not None:
                             cv.rectangle(frame, last_point, left_index, cu_color, 2)
                         
-                        if last_point == None and tecla == ord('e'):
+                        if last_point is None and tecla == ord('e'):
                             last_point = left_index
                             cooldown = insert_cooldown
 
                         
-                        if last_point != None and tecla == ord('e') and cooldown <= 0:
+                        if last_point is not None and tecla == ord('e') and cooldown <= 0:
                             current_point = left_index
                             
                             center_point = ((last_point[0] + current_point[0]) // 2,(last_point[1] + current_point[1]) // 2)
@@ -397,21 +398,21 @@ while camara.isOpened():                            # Ciclo para examinar los fr
                             # cv.rectangle(frame, last_point, current_point, cu_color, 2)
                             editor_index = 1
             
-            if left_index == None and tecla == ord('e'):
+            if left_index is None and tecla == ord('e'):
                 editor_index = 1
         
         
         # M O V E R
         if cu_editor_mode == "move":
-            if left_index != None:
+            if left_index is not None:
                 match cu_shape:
                     case "line":
                         px_diff =  (last_point[0] - left_index[0], last_point[1] - left_index[1])
                 
-                        if last_point != None:
+                        if last_point is not None:
                             new_point1 = ((last_point[0] - px_diff[0]),(last_point[1] - px_diff[1]))
                         
-                        if current_point != None:
+                        if current_point is not None:
                             new_point2 = ((current_point[0] - px_diff[0]),(current_point[1] - px_diff[1]))
     
                         cv.line(frame, new_point1, new_point2, cu_color, 5 )
@@ -450,7 +451,7 @@ while camara.isOpened():                            # Ciclo para examinar los fr
                     new_point1 = None
                     new_point2 = None
             
-            if left_index == None and tecla == ord('e'):
+            if left_index is None and tecla == ord('e'):
                 editor_index = 1  
         
         
@@ -459,7 +460,7 @@ while camara.isOpened():                            # Ciclo para examinar los fr
             if cu_shape == "circle": 
                 editor_index = 1
             
-            elif left_index != None:
+            elif left_index is not None:
                                 
                 co = left_index[0] - center_point[0]
                 ca = left_index[1] - center_point[1]
@@ -510,7 +511,7 @@ while camara.isOpened():                            # Ciclo para examinar los fr
                     new_point2 = None
                      
             
-            elif left_index == None and tecla == ord('e'):
+            elif left_index is None and tecla == ord('e'):
                 editor_index = 1
              
              
@@ -519,11 +520,11 @@ while camara.isOpened():                            # Ciclo para examinar los fr
             if cu_shape == "line":
                 editor_index = 1
             
-            elif left_index != None:
+            elif left_index is not None:
                 temp_figure_size = abs(left_index[0] - center_point[0])
                 print(temp_figure_size)
                 
-                if(temp_figure_size == 0): temp_figure_size = 1
+                if temp_figure_size == 0: temp_figure_size = 1
                 
                 match cu_shape:
                     case "circle":
@@ -543,7 +544,7 @@ while camara.isOpened():                            # Ciclo para examinar los fr
                     temp_figure_size = None    
                             
             
-            elif left_index == None and tecla == ord('e'):
+            elif left_index is None and tecla == ord('e'):
                 editor_index = 1        
         
         
@@ -552,8 +553,8 @@ while camara.isOpened():                            # Ciclo para examinar los fr
         cu_editor_mode = editor_mode[editor_index]
         
     
-    if(left_index != None and cooldown <= 0 and cu_mode == 0):
-        if((left_index[0] >= int(w*0.425) and left_index[0] <= int(w*0.475)) and (left_index[1] >= 20 and left_index[1] <= 100) ):
+    if left_index is not None and cooldown <= 0 and cu_mode == 0:
+        if (int(w * 0.425) <= left_index[0] <= int(w * 0.475)) and (20 <= left_index[1] <= 100):
             match cu_mode:
                 case "paint": 
                     cu_mode = mode_names[1]
@@ -566,7 +567,7 @@ while camara.isOpened():                            # Ciclo para examinar los fr
 
             cooldown = mode_cooldown
                 
-        if((left_index[0] >= int(w*0.525) and left_index[0] <= int(w*0.575)) and (left_index[1] >= 20 and left_index[1] <= 100) ):
+        if (left_index[0] >= int(w * 0.525) <= int(w * 0.575)) and (20 <= left_index[1] <= 100):
             lienzo = np.zeros_like(frame)
     
     cooldown -= 1
@@ -580,5 +581,5 @@ while camara.isOpened():                            # Ciclo para examinar los fr
     
     
 camara.release()
-cv.destroyAllWindows
+cv.destroyAllWindows()
     
