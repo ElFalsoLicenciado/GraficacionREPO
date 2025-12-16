@@ -103,7 +103,7 @@ def draw_line(p1, p2, color=(1, 1, 1), width=2.0):
     glEnable(GL_LIGHTING)
 
 def norm_landmark(p):
-    return (p.x - 0.5, -(p.y - 0.5), p.z)
+    return p.x - 0.5, -(p.y - 0.5), p.z
 
 # ============================================================
 # Renderizado

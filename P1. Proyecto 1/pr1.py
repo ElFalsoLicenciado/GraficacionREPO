@@ -89,8 +89,7 @@ while camara.isOpened():                            # Ciclo para examinar los fr
     
     
     left_index = None
-    right_index = None
-    
+
     # Detectar los landmarks que queremos
     if results.multi_hand_landmarks and results.multi_handedness:
         for hand_landmarks, handedness in zip(results.multi_hand_landmarks, results.multi_handedness):
@@ -102,11 +101,6 @@ while camara.isOpened():                            # Ciclo para examinar los fr
             if label == 'Left': 
                 left_index = (x,y)
                 cv.circle(frame, left_index, 4, red, -1)     # Circulo rojo en izquierdo
-                
-            elif label == 'Right': 
-                right_index = (x,y)
-                cv.circle(frame, right_index, 4, blue, -1)   # Circulo azul en derecho
-    
 
     cv.rectangle(frame, (int(w*0.425),20), (int(w*0.475),100), (255,255,255), -1)                       # Cambiar de modo
     cv.putText(frame, cu_mode , (int(w*0.430),70), cv.FONT_HERSHEY_SIMPLEX, 0.80, (0,0,0), 2)
@@ -259,7 +253,7 @@ while camara.isOpened():                            # Ciclo para examinar los fr
         
         # print(cooldown)
         
-        if left_index is not None and (cooldown <= 0):
+        if left_index is not None and (cooldown <= 0) and (cu_editor_mode == "nothing" or cu_editor_mode == "waiting"):
             if (bx_1 <= left_index[0] <= bx_2) and (int(mid_y * .85) <= left_index[1] <= (mid_y * 0.94)):
                 # print("COLOR")
                 # print(color_index)
@@ -285,7 +279,6 @@ while camara.isOpened():                            # Ciclo para examinar los fr
         
         
         # Teclas para modo Figures:
-        # N == "NADA"
         # W == "ESPERA"
         # A == "AGREGAR"
         # T == "MOVER"
@@ -522,7 +515,6 @@ while camara.isOpened():                            # Ciclo para examinar los fr
             
             elif left_index is not None:
                 temp_figure_size = abs(left_index[0] - center_point[0])
-                print(temp_figure_size)
                 
                 if temp_figure_size == 0: temp_figure_size = 1
                 
@@ -560,10 +552,11 @@ while camara.isOpened():                            # Ciclo para examinar los fr
                     cu_mode = mode_names[1]
                     last_point = None
                     current_point = None
-                case "figures": 
-                    cu_mode = mode_names[0]
-                    last_point = None
-                    current_point = None
+                case "figures":
+                    if cu_editor_mode == "nothing":
+                        cu_mode = mode_names[0]
+                        last_point = None
+                        current_point = None
 
             cooldown = mode_cooldown
                 
