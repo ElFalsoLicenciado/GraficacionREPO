@@ -1,3 +1,5 @@
+import math
+
 import cv2
 import glfw
 import mediapipe as mp
@@ -28,13 +30,20 @@ EYE_DISTANCE_REF = 0.16
 BASE_SCALE = 0.8
 EXP = 1.8
 
-card_tex = None
+egg_card_tex = None
+cavendish_card_tex = None
 
 current_frame = 0.0
 rotation_angle = 0.0
 movement_offset = 0.0
-movement_speed = 0.05
+movement_speed = 0.005
 movement_direction = 1
+
+in_animation = False
+mouth_open = False
+falling_card_offset = 0.0
+
+mouth_ref = 0.1
 
 
 def init_glfw():
@@ -57,7 +66,7 @@ def init_glfw():
 
 
 def setup_opengl():
-    global card_tex
+    global egg_card_tex, cavendish_card_tex
     glClearColor(0.0, 0.0, 0.0, 1.0)
     glEnable(GL_DEPTH_TEST)
     glEnable(GL_TEXTURE_2D)
@@ -68,7 +77,8 @@ def setup_opengl():
     glEnable(GL_LINE_SMOOTH)
     glHint(GL_LINE_SMOOTH_HINT, GL_NICEST)
 
-    card_tex = load_texture("C:/Users/User/Documents/Semestres/5to/Graficacion/Repositorio/P2. Proyecto 2/Egg.png")
+    egg_card_tex = load_texture("C:/Users/User/Documents/Semestres/5to/Graficacion/Repositorio/P2. Proyecto 2/Egg.png")
+    cavendish_card_tex = load_texture("C:/Users/User/Documents/Semestres/5to/Graficacion/Repositorio/P2. Proyecto 2/Cavendish.png")
 
 
 def load_texture(path):
@@ -165,12 +175,6 @@ def draw_textured_rectangle(p1,p2,color=(1, 1, 1), texture=None):
 
     glNormal3f(0.0, 0.0, -1.0)
 
-
-    # point1 = (-0.05, -0.65, 1)
-    # point2 = (0.05, -0.65, 1)
-    # point3 = (0.05, -0.5, 1)
-    # point4 = (-0.05, -0.5, 1)
-
     point1 = (p1[0], p1[1], 1)
     point2 = (p2[0], p1[1], 1)
     point3 = (p2[0], p2[1], 1)
@@ -215,20 +219,64 @@ def draw_cone(x, y, z, base_radius, height, color=(1, 0, 0)):
 
 
 def draw_animated_card(p1,p2, scale=1.0):
-    global rotation_angle
+    global rotation_angle, movement_offset
+
+    radian = math.radians(rotation_angle)
+
+    cos_a = math.cos(radian)
+    sin_a = math.sin(radian)
+
+    cx = (p1[0] + p2[0]) / 2
+    cz = (p1[2] + p2[2]) / 2
+
+    dx1 = p1[0] - cx; dx2 = p2[0] - cx
+    dz1 = p1[2] - cz; dz2 = p2[2] - cz
+
+    p1 = (dx1 * cos_a - dz1 * sin_a + cx,p1[1]+movement_offset, dx1*sin_a + dz2*cos_a + cz)
+    p2 = (dx2 * cos_a - dz2 * sin_a + cx,p2[1]+movement_offset, dx2*sin_a + dz2*cos_a + cz)
+
 
     glPushMatrix()
 
-    glTranslatef(0.0, 0.0, -1.2+1.2*scale)
-    glRotatef(rotation_angle, 0,1,0)
+    # glTranslatef(0.0, 0.0, -0.6+0.6*scale)
+
 
     draw_textured_rectangle(
         p1, p2,
         color=(1, 1, 1),
-        texture=card_tex
+        texture=egg_card_tex
     )
 
     glPopMatrix()
+
+def draw_falling_card(p1,p2, scale=1.0):
+    global rotation_angle, falling_card_offset, in_animation
+
+    radian = math.radians(rotation_angle)
+
+    cos_a = math.cos(radian)
+    sin_a = math.sin(radian)
+
+    cx = (p1[0] + p2[0]) / 2
+    cz = (p1[2] + p2[2]) / 2
+
+    dx1 = p1[0] - cx; dx2 = p2[0] - cx
+    dz1 = p1[2] - cz; dz2 = p2[2] - cz
+
+    p1 = (dx1 * cos_a - dz1 * sin_a + cx, p1[1] + falling_card_offset, dx1 * sin_a + dz2 * cos_a + cz)
+    p2 = (dx2 * cos_a - dz2 * sin_a + cx, p2[1] + falling_card_offset, dx2 * sin_a + dz2 * cos_a + cz)
+
+    glPushMatrix()
+
+    draw_textured_rectangle(
+        p1, p2,
+        color=(1, 1, 1),
+        texture=cavendish_card_tex
+    )
+
+    glPopMatrix()
+
+    print(f"Carta cayendo")
 
 
 def norm_landmark(p, scale=2.0):
@@ -249,22 +297,46 @@ def calculate_scale(eye_distance):
     return max(0.3, min(scale, 3.5))
 
 
-def update_motion():
-    global rotation_angle, movement_offset, movement_direction
+def update_motion(scale=1.0, chin=None):
+    global in_animation, mouth_open,rotation_angle,movement_offset, falling_card_offset, movement_direction
 
-    # Actualizar el ángulo de rotación
-    rotation_angle += 1
+    base_amplitude = 0.05 * scale
+
+    min_amp = 0.001
+    max_amp = 0.15
+
+    # clamp
+    amplitude = max(min_amp, min(base_amplitude, max_amp))
+
+    movement_offset += movement_speed * movement_direction
+
+    rotation_angle += 5
     if rotation_angle >= 360:
         rotation_angle = 0  # Reiniciar el ángulo después de una vuelta completa
 
-    # Actualizar el movimiento de vaivén
-    movement_offset += movement_speed * movement_direction
-    if movement_offset > 3.0:       # Limite derecho
-        movement_direction = -1     # Cambiar dirección hacia la izquierda
-    elif movement_offset < -3.0:    # Limite izquierdo
-        movement_direction = 1      # Cambiar dirección hacia la derecha
+    if movement_offset > chin[1] + amplitude:
+        movement_direction = -1
+    elif movement_offset < chin[1] - amplitude:
+        movement_direction = 1
 
-    print(f"rotation_angle: {rotation_angle}, movement_offset: {movement_offset}")
+    if in_animation:
+        falling_card_offset -= 0.01
+        if falling_card_offset < -2.5:
+            in_animation = False
+            mouth_open = False
+            falling_card_offset = 0.0
+
+
+def get_mouth_opening(lm):
+    upper_lip = lm[13]
+    lower_lip = lm[14]
+
+    _, uy, _ = norm_landmark(upper_lip)
+    _, ly, _ = norm_landmark(lower_lip)
+
+    mouth_open = abs(ly - uy)
+    return mouth_open
+
 
 
 # ============================================================
@@ -323,6 +395,7 @@ def draw_contour(landmarks, indices, width ,color=(0.3, 0.8, 0.4), scale=1.0):
 
 
 def render_3d_mask_extended(face_landmarks, animation_time, scale=1.0):
+    global in_animation, mouth_open, falling_card_offset
     """Renderiza la máscara 3D extendida"""
     glEnable(GL_DEPTH_TEST)
     glClear(GL_DEPTH_BUFFER_BIT)
@@ -351,11 +424,24 @@ def render_3d_mask_extended(face_landmarks, animation_time, scale=1.0):
     draw_cone(hx,hy, -0.5, 0.10*scale, cone_height, color=(0.992, 0.361, 0.341))
     draw_sphere(hx,hy+cone_height, -0.5, scale * 0.030, (0.81,0.81,0.81))
 
+    card_width = 0.075 * scale
+    card_height = 0.15 * scale
 
-    chin = lm[152]
-    hx, hy, hz = norm_landmark(chin)
+    chin = norm_landmark(lm[152])
+    left_side = norm_landmark(lm[148])
+    right_side = norm_landmark(lm[372])
 
-    draw_animated_card((hx, hy, hz), (hx+0.075, hy+0.15*scale, hz), scale=scale)
+    hx = (left_side[0] + right_side[0]) / 2
+
+    hy = chin[1] - (0.15 * scale) / 2 - 0.02 * scale
+
+    hz = chin[2]
+
+    draw_animated_card(
+        (hx, hy, hz),
+        (hx + card_width, hy + card_height, hz),
+        scale=scale
+    )
 
     # ============================================================
     # 1. CONTORNO CARA
@@ -385,11 +471,6 @@ def render_3d_mask_extended(face_landmarks, animation_time, scale=1.0):
 
 
     # ============================================================
-    # 3. CEJAS
-    # ============================================================
-
-
-    # ============================================================
     # 4. NARIZ
     # ============================================================
 
@@ -402,6 +483,23 @@ def render_3d_mask_extended(face_landmarks, animation_time, scale=1.0):
     # ============================================================
     # 5. BOCA
     # ============================================================
+    mouth_length = get_mouth_opening(lm)
+
+    print(f"Mouth open: {mouth_length} and scale: {mouth_ref*scale}")
+
+    if mouth_length > mouth_ref*scale and not mouth_open:
+        mouth_open = True
+        in_animation = True
+        falling_card_offset = 0.0
+
+    print(f"Carta cayendo: {in_animation} - Mouth open: {mouth_open}")
+
+    if in_animation:
+        draw_falling_card(
+            (0.075, 0.9, 0),
+            (-0.075, 1.5, 0),
+            scale=scale
+        )
 
     draw_contour(lm, CONTORNO_BOCA,3.5, color=(0.98, 0.243, 0.059), scale=scale)
     draw_polygon(lm, CONTORNO_BOCA, z_offset=0.024, color=(1,1,1), scale=scale)
@@ -428,6 +526,7 @@ def render_3d_mask_extended(face_landmarks, animation_time, scale=1.0):
 # ============================================================
 def main():
     global current_frame
+    scale = 1.0; chin = None
     try:
         window = init_glfw()
     except Exception as e:
@@ -481,8 +580,10 @@ def main():
                 for face_landmarks in results.multi_face_landmarks:
                     eye_distance = get_eye_distance(face_landmarks.landmark)
                     scale = calculate_scale(eye_distance)
+                    chin = norm_landmark(face_landmarks.landmark[152])
                     render_3d_mask_extended(face_landmarks, current_frame, scale)
-            update_motion()
+            update_motion(scale, chin)
+
 
             glfw.swap_buffers(window)
 
