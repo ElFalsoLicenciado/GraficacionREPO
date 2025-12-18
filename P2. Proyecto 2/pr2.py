@@ -1,9 +1,9 @@
-import glfw
 import cv2
+import glfw
 import mediapipe as mp
-import numpy as np
 from OpenGL.GL import *
 from OpenGL.GLU import *
+from PIL import Image
 
 # ============================================================
 # Configuración
@@ -24,13 +24,17 @@ CONTORNO_OJO_IZQ = [124, 225, 224, 223, 222, 221, 189, 244, 233, 232, 231, 230, 
 CONTORNO_OJO_DER = [353, 445, 444, 443, 442, 441, 417, 464, 453, 452, 451, 450, 449, 448, 261, 265]
 
 
-# Cejas
-LEFT_EYEBROW = [70, 63, 105, 66, 107]
-RIGHT_EYEBROW = [336, 296, 334, 293, 300]
-
 EYE_DISTANCE_REF = 0.16
 BASE_SCALE = 0.8
 EXP = 1.8
+
+card_tex = None
+
+current_frame = 0.0
+rotation_angle = 0.0
+movement_offset = 0.0
+movement_speed = 0.05
+movement_direction = 1
 
 
 def init_glfw():
@@ -51,15 +55,51 @@ def init_glfw():
 
     return window
 
+
 def setup_opengl():
+    global card_tex
     glClearColor(0.0, 0.0, 0.0, 1.0)
     glEnable(GL_DEPTH_TEST)
+    glEnable(GL_TEXTURE_2D)
+    glDisable(GL_CULL_FACE)
     glDepthFunc(GL_LESS)
     glEnable(GL_BLEND)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
     glEnable(GL_LINE_SMOOTH)
     glHint(GL_LINE_SMOOTH_HINT, GL_NICEST)
 
+    card_tex = load_texture("C:/Users/User/Documents/Semestres/5to/Graficacion/Repositorio/P2. Proyecto 2/Egg.png")
+
+
+def load_texture(path):
+    img = Image.open(path).convert("RGB")
+    img = img.transpose(Image.FLIP_TOP_BOTTOM)
+    img_data = img.tobytes()
+
+    tex_id = glGenTextures(1)
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
+
+    glBindTexture(GL_TEXTURE_2D, tex_id)
+
+    # Filtrado
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+
+    # Envoltura (tiling)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
+
+    # Subir la textura
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB,
+                 img.width, img.height, 0,
+                 GL_RGB, GL_UNSIGNED_BYTE, img_data)
+
+    # Crear mipmaps
+    glGenerateMipmap(GL_TEXTURE_2D)
+
+    glBindTexture(GL_TEXTURE_2D, 0)
+
+    return tex_id
 
 def create_video_texture():
     video_tex = glGenTextures(1)
@@ -114,6 +154,40 @@ def draw_line(p1, p2, color=(1, 1, 1), width=2.0):
     glEnd()
     glEnable(GL_LIGHTING)
 
+
+def draw_textured_rectangle(p1,p2,color=(1, 1, 1), texture=None):
+    glEnable(GL_TEXTURE_2D)
+    glBindTexture(GL_TEXTURE_2D, texture)
+
+
+    glBegin(GL_QUADS)
+    glColor3f(*color)
+
+    glNormal3f(0.0, 0.0, -1.0)
+
+
+    # point1 = (-0.05, -0.65, 1)
+    # point2 = (0.05, -0.65, 1)
+    # point3 = (0.05, -0.5, 1)
+    # point4 = (-0.05, -0.5, 1)
+
+    point1 = (p1[0], p1[1], 1)
+    point2 = (p2[0], p1[1], 1)
+    point3 = (p2[0], p2[1], 1)
+    point4 = (p1[0], p2[1], 1)
+
+
+    glTexCoord2f(0, 0); glVertex3f(*point1)
+    glTexCoord2f(1, 0); glVertex3f(*point2)
+    glTexCoord2f(1, 1); glVertex3f(*point3)
+    glTexCoord2f(0, 1); glVertex3f(*point4)
+    glEnd()
+
+
+    glBindTexture(GL_TEXTURE_2D, 0)
+    glDisable(GL_TEXTURE_2D)
+
+
 def draw_polygon(landmarks, indices,z_offset, color=(1, 1, 1), scale=1.0):
     glDisable(GL_LIGHTING)
     glLineWidth(1.0)
@@ -140,6 +214,23 @@ def draw_cone(x, y, z, base_radius, height, color=(1, 0, 0)):
     glPopMatrix()
 
 
+def draw_animated_card(p1,p2, scale=1.0):
+    global rotation_angle
+
+    glPushMatrix()
+
+    glTranslatef(0.0, 0.0, -1.2+1.2*scale)
+    glRotatef(rotation_angle, 0,1,0)
+
+    draw_textured_rectangle(
+        p1, p2,
+        color=(1, 1, 1),
+        texture=card_tex
+    )
+
+    glPopMatrix()
+
+
 def norm_landmark(p, scale=2.0):
     return (p.x - 0.5) * scale, -(p.y - 0.5) * scale, p.z * scale
 
@@ -156,6 +247,24 @@ def calculate_scale(eye_distance):
     scale = BASE_SCALE * (eye_distance / EYE_DISTANCE_REF) ** EXP
 
     return max(0.3, min(scale, 3.5))
+
+
+def update_motion():
+    global rotation_angle, movement_offset, movement_direction
+
+    # Actualizar el ángulo de rotación
+    rotation_angle += 1
+    if rotation_angle >= 360:
+        rotation_angle = 0  # Reiniciar el ángulo después de una vuelta completa
+
+    # Actualizar el movimiento de vaivén
+    movement_offset += movement_speed * movement_direction
+    if movement_offset > 3.0:       # Limite derecho
+        movement_direction = -1     # Cambiar dirección hacia la izquierda
+    elif movement_offset < -3.0:    # Limite izquierdo
+        movement_direction = 1      # Cambiar dirección hacia la derecha
+
+    print(f"rotation_angle: {rotation_angle}, movement_offset: {movement_offset}")
 
 
 # ============================================================
@@ -183,10 +292,10 @@ def render_video_background(frame_rgb, video_tex):
 
     glEnable(GL_TEXTURE_2D)
     glBegin(GL_QUADS)
-    glTexCoord2f(0, 1); glVertex2f(0, 0)
-    glTexCoord2f(1, 1); glVertex2f(1, 0)
-    glTexCoord2f(1, 0); glVertex2f(1, 1)
-    glTexCoord2f(0, 0); glVertex2f(0, 1)
+    glTexCoord2f(0, 1); glVertex3f(0, 0,-1)
+    glTexCoord2f(1, 1); glVertex3f(1, 0,-1)
+    glTexCoord2f(1, 0); glVertex3f(1, 1,-1)
+    glTexCoord2f(0, 0); glVertex3f(0, 1,-1)
     glEnd()
     glDisable(GL_TEXTURE_2D)
 
@@ -213,7 +322,7 @@ def draw_contour(landmarks, indices, width ,color=(0.3, 0.8, 0.4), scale=1.0):
     glEnable(GL_LIGHTING)
 
 
-def render_3d_mask_extended(face_landmarks, scale=1.0):
+def render_3d_mask_extended(face_landmarks, animation_time, scale=1.0):
     """Renderiza la máscara 3D extendida"""
     glEnable(GL_DEPTH_TEST)
     glClear(GL_DEPTH_BUFFER_BIT)
@@ -242,6 +351,11 @@ def render_3d_mask_extended(face_landmarks, scale=1.0):
     draw_cone(hx,hy, -0.5, 0.10*scale, cone_height, color=(0.992, 0.361, 0.341))
     draw_sphere(hx,hy+cone_height, -0.5, scale * 0.030, (0.81,0.81,0.81))
 
+
+    chin = lm[152]
+    hx, hy, hz = norm_landmark(chin)
+
+    draw_animated_card((hx, hy, hz), (hx+0.075, hy+0.15*scale, hz), scale=scale)
 
     # ============================================================
     # 1. CONTORNO CARA
@@ -313,6 +427,7 @@ def render_3d_mask_extended(face_landmarks, scale=1.0):
 # Función principal
 # ============================================================
 def main():
+    global current_frame
     try:
         window = init_glfw()
     except Exception as e:
@@ -345,6 +460,8 @@ def main():
             if not ret:
                 break
 
+            current_frame = glfw.get_time()
+
             frame = cv2.flip(frame, 1)
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
@@ -358,12 +475,14 @@ def main():
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
             render_video_background(frame_rgb, video_tex)
+            glClear(GL_DEPTH_BUFFER_BIT)
 
             if results.multi_face_landmarks:
                 for face_landmarks in results.multi_face_landmarks:
                     eye_distance = get_eye_distance(face_landmarks.landmark)
                     scale = calculate_scale(eye_distance)
-                    render_3d_mask_extended(face_landmarks, scale)
+                    render_3d_mask_extended(face_landmarks, current_frame, scale)
+            update_motion()
 
             glfw.swap_buffers(window)
 

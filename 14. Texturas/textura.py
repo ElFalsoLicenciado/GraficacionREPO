@@ -7,7 +7,14 @@ import sys
 tex_grass = None
 tex_wall = None
 tex_roof = None
+tex_card = None
 
+
+current_frame = 0.0
+rotation_angle = 0.0
+movement_offset = 0.0
+movement_speed = 0.05
+movement_direction = 1
 
 
 # ------------------------------------------------------------
@@ -48,7 +55,7 @@ def load_texture(path):
 # OpenGL Init
 # ------------------------------------------------------------
 def init():
-    global tex_grass, tex_wall, tex_roof
+    global tex_grass, tex_wall, tex_roof, tex_card
     glClearColor(0.5, 0.8, 1.0, 1.0)
     glEnable(GL_DEPTH_TEST)
     glEnable(GL_TEXTURE_2D)
@@ -61,7 +68,7 @@ def init():
     tex_grass = load_texture("C:/Users/User/Documents/Semestres/5to/Graficacion/Repositorio/14. Texturas/grass.jpg")
     tex_wall = load_texture("C:/Users/User/Documents/Semestres/5to/Graficacion/Repositorio/14. Texturas/Wall.png")  # <<-- TU IMAGEN AQUÍ
     tex_roof = load_texture("C:/Users/User/Documents/Semestres/5to/Graficacion/Repositorio/14. Texturas/beans.jpg")
-
+    tex_card = load_texture("C:/Users/User/Documents/Semestres/5to/Graficacion/Repositorio/P2. Proyecto 2/Egg.png")
 
 # ------------------------------------------------------------
 # Casa con textura de pared
@@ -150,6 +157,57 @@ def draw_ground():
 
     glBindTexture(GL_TEXTURE_2D, 0)
 
+def draw_textured_rectangle(p1, p2, color=(1, 1, 1), texture=None):
+    glBindTexture(GL_TEXTURE_2D, texture)
+
+
+    glBegin(GL_QUADS)
+    glColor3f(*color)
+
+    glNormal3f(0.0, 0.0, -1.0)
+
+    glTexCoord2f(0, 0); glVertex3f(-0.5, 0, 1)
+    glTexCoord2f(1, 0); glVertex3f(0.5, 0, 1)
+    glTexCoord2f(1, 1); glVertex3f(0.5, 1.5, 1)
+    glTexCoord2f(0, 1); glVertex3f(-0.5, 1.5, 1)
+
+    glEnd()
+
+
+    glBindTexture(GL_TEXTURE_2D, 0)
+
+
+def draw_animated_card():
+    global rotation_angle
+
+    glPushMatrix()
+
+    glTranslatef(0.0, 0.0, -1.2)
+    glRotatef(rotation_angle, 0, 1, 0)
+
+    draw_textured_rectangle(
+        ( 0.5,  1.0, 0.0),
+        (-0.5, -1.5, 0.0),
+        texture=tex_card
+    )
+
+    glPopMatrix()
+
+
+def update_motion():
+    global rotation_angle, movement_offset, movement_direction
+
+    # Actualizar el ángulo de rotación
+    rotation_angle += 0.1
+    if rotation_angle >= 360:
+        rotation_angle = 0  # Reiniciar el ángulo después de una vuelta completa
+
+    # Actualizar el movimiento de vaivén
+    movement_offset += movement_speed * movement_direction
+    if movement_offset > 3.0:       # Limite derecho
+        movement_direction = -1     # Cambiar dirección hacia la izquierda
+    elif movement_offset < -3.0:    # Limite izquierdo
+        movement_direction = 1      # Cambiar dirección hacia la derecha
 
 # ------------------------------------------------------------
 # Dibujo principal
@@ -160,9 +218,11 @@ def draw_scene():
 
     gluLookAt(4, 4, 8, 0, 1, 0, 0, 1, 0)
 
+    update_motion()
     draw_ground()
-    draw_cube()
-    draw_roof()
+    # draw_cube()
+    # draw_roof()
+    draw_animated_card()
 
     glfw.swap_buffers(window)
 
