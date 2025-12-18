@@ -417,12 +417,19 @@ def render_3d_mask_extended(face_landmarks, animation_time, scale=1.0):
     lm = face_landmarks.landmark
 
     head_top = lm[10]
+    head_left = norm_landmark(lm[148])
+    head_right = norm_landmark(lm[372])
+
     hx, hy, hz = norm_landmark(head_top)
 
-    cone_height = 0.3 * scale
+    head_width = abs(head_right[0] - head_left[0])
+    head_radius = head_width * 0.75
 
-    draw_cone(hx,hy, -0.5, 0.10*scale, cone_height, color=(0.992, 0.361, 0.341))
-    draw_sphere(hx,hy+cone_height, -0.5, scale * 0.030, (0.81,0.81,0.81))
+    cone_radius = head_radius * 1.05
+    cone_height = head_radius * 1.6
+
+    draw_cone(hx,hy, -0.5, cone_radius, cone_height, (0.992, 0.361, 0.341))
+    draw_sphere(hx,hy+cone_height, -0.5, cone_radius * 0.25, (0.81,0.81,0.81))
 
     card_width = 0.075 * scale
     card_height = 0.15 * scale
@@ -437,11 +444,8 @@ def render_3d_mask_extended(face_landmarks, animation_time, scale=1.0):
 
     hz = chin[2]
 
-    draw_animated_card(
-        (hx, hy, hz),
-        (hx + card_width, hy + card_height, hz),
-        scale=scale
-    )
+    draw_animated_card((hx, hy, hz), (hx + card_width, hy + card_height, hz), scale=scale)
+
 
     # ============================================================
     # 1. CONTORNO CARA
@@ -485,14 +489,11 @@ def render_3d_mask_extended(face_landmarks, animation_time, scale=1.0):
     # ============================================================
     mouth_length = get_mouth_opening(lm)
 
-    print(f"Mouth open: {mouth_length} and scale: {mouth_ref*scale}")
 
     if mouth_length > mouth_ref*scale and not mouth_open:
         mouth_open = True
         in_animation = True
         falling_card_offset = 0.0
-
-    print(f"Carta cayendo: {in_animation} - Mouth open: {mouth_open}")
 
     if in_animation:
         draw_falling_card(
