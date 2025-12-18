@@ -1,11 +1,11 @@
 import math
-
 import cv2
 import glfw
 import mediapipe as mp
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from PIL import Image
+import pygame, time
 
 # ============================================================
 # Configuración
@@ -45,6 +45,11 @@ falling_card_offset = 0.0
 
 mouth_ref = 0.1
 
+jimbo = None
+multi = None
+
+voice_cooldown = 5
+cooldown_timer = 0.0
 
 def init_glfw():
     if not glfw.init():
@@ -395,7 +400,7 @@ def draw_contour(landmarks, indices, width ,color=(0.3, 0.8, 0.4), scale=1.0):
 
 
 def render_3d_mask_extended(face_landmarks, animation_time, scale=1.0):
-    global in_animation, mouth_open, falling_card_offset
+    global in_animation, mouth_open, falling_card_offset, jimbo, multi, cooldown_timer
     """Renderiza la máscara 3D extendida"""
     glEnable(GL_DEPTH_TEST)
     glClear(GL_DEPTH_BUFFER_BIT)
@@ -489,8 +494,16 @@ def render_3d_mask_extended(face_landmarks, animation_time, scale=1.0):
     # ============================================================
     mouth_length = get_mouth_opening(lm)
 
+    print(f"Mouth Length: {mouth_length} - Ref: {mouth_ref*scale}")
+    print(f"Cooldown Timer: {cooldown_timer}")
+
+    if mouth_length > mouth_ref*scale and cooldown_timer <= 0.0:
+        jimbo.play()
+        cooldown_timer = voice_cooldown
 
     if mouth_length > mouth_ref*scale and not mouth_open:
+        multi.set_volume(0.25)
+        multi.play()
         mouth_open = True
         in_animation = True
         falling_card_offset = 0.0
@@ -505,15 +518,7 @@ def render_3d_mask_extended(face_landmarks, animation_time, scale=1.0):
     draw_contour(lm, CONTORNO_BOCA,3.5, color=(0.98, 0.243, 0.059), scale=scale)
     draw_polygon(lm, CONTORNO_BOCA, z_offset=0.024, color=(1,1,1), scale=scale)
 
-    # ============================================================
-    # 6. CACHETES
-    # ============================================================
-
-
-    # ============================================================
-    # 7. FRENTE Y BARBA
-    # ============================================================
-
+    cooldown_timer -= 0.1
 
     # Restaurar matrices
     glPopMatrix()
@@ -526,7 +531,8 @@ def render_3d_mask_extended(face_landmarks, animation_time, scale=1.0):
 # Función principal
 # ============================================================
 def main():
-    global current_frame
+    global current_frame, jimbo, multi
+
     scale = 1.0; chin = None
     try:
         window = init_glfw()
@@ -553,6 +559,19 @@ def main():
 
     frame_count = 0
     fps_timer = glfw.get_time()
+
+    pygame.mixer.init()
+
+    pygame.mixer.music.load(
+        "C:/Users/User/Documents/Semestres/5to/Graficacion/Repositorio/P2. Proyecto 2/balatro.mp3")
+    jimbo = pygame.mixer.Sound(
+        "C:/Users/User/Documents/Semestres/5to/Graficacion/Repositorio/P2. Proyecto 2/jimbo.mp3")
+    multi = pygame.mixer.Sound(
+        "C:/Users/User/Documents/Semestres/5to/Graficacion/Repositorio/P2. Proyecto 2/multi.ogg")
+
+    pygame.mixer.music.set_volume(0.15)
+    pygame.mixer.music.play(loops=-1, start=0.0, fade_ms=1000)
+
 
     try:
         while not glfw.window_should_close(window):
